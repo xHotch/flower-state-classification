@@ -1,0 +1,31 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[[source]]
+url = "https://developer.download.nvidia.com/compute/redist/jp/v461"
+name = "nvidia_jp_461"
+
+[packages]
+setuptools = "*"
+testresources = "*"
+numpy = "*"
+future = "~=0.18.2"
+mock = "~=3.0.5"
+keras_preprocessing = "~=1.1.2"
+keras_applications = "~=1.0.8"
+gast = "~=0.4.0"
+protobuf = "*"
+pybind11 = "*"
+cython = "*"
+pkgconfig = "*" 
+packaging = "*"
+h5py = "*"
+tensorflow = {version = "==2.7.0+nv22.01", pre = "true", index = "nvidia_jp_461"}
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"
+
