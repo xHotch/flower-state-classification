@@ -3,6 +3,7 @@ Tested on Jetson Nano devkit 4GB.
 Jetpack 4.6.1
 
 Installation:
+login password> 01527619 
 
 (pat. taken from https://elinux.org/Jetson_Zoo)
 
@@ -18,6 +19,8 @@ sudo pip3 install --pre --extra-index-url https://developer.download.nvidia.com/
 
 
 
-Installation with pipenv (TODO) :
+Installation with pipenv (TODO)
 
 pip install 'pipenv==2021.5.29' see https://github.com/pypa/pipenv/issues/4829
+
+sudo ln -s /usr/include/locale.h /usr/include/xlocale.h

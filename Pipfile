@@ -8,20 +8,22 @@ url = "https://developer.download.nvidia.com/compute/redist/jp/v461"
 name = "nvidia_jp_461"
 
 [packages]
-setuptools = "*"
 testresources = "*"
-numpy = "*"
-future = "~=0.18.2"
-mock = "~=3.0.5"
-keras_preprocessing = "~=1.1.2"
-keras_applications = "~=1.0.8"
-gast = "~=0.4.0"
+setuptools = "==49.6.0"
+numpy = "==1.19.4"
+future = "==0.18.2"
+mock = "==3.0.5"
+h5py = "==3.1.0"
+keras_preprocessing = "==1.1.2"
+keras_applications = "==1.0.8"
+gast = "==0.2.2"
 protobuf = "*"
 pybind11 = "*"
-cython = "*"
-pkgconfig = "*" 
-packaging = "*"
-h5py = "*"
+flower_state_classification = {editable = true, path = "."}
+# cython = "*"
+# pkgconfig = "*" 
+# packaging = "*"
+
 tensorflow = {version = "==2.7.0+nv22.01", pre = "true", index = "nvidia_jp_461"}
 
 [dev-packages]
