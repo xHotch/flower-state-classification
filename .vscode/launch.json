@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Run Pipeline using Webcam (Debug)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/flower_state_classification/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Run Pipeline on image folder (Debug)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/flower_state_classification/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["C:\\dev\\plantnet\\plantnet_300K\\plantnet_300K\\images"]
+        },
+        {
+            "name": "Python: Run Pipeline on Video (Debug)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/flower_state_classification/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["F:\\OwnCloud\\Bilder\\Tele\\video\\1_4913717228307742932.MP4"]
+        }
+    ]
+}
