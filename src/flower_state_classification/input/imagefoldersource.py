@@ -16,8 +16,7 @@ class ImageFolderSource(Source):
         self.path = path
         self.file_iterator = glob.iglob(path + "/**/*.jpg", recursive=True)
         self.frame_number = len(list(glob.iglob(path + "/**/*.jpg", recursive=True)))
-        print("Frame count: " + str(self.frame_number))
-
+        
     def get_frame(self) -> Tuple[bool, np.ndarray]:
         filename = next(self.file_iterator, None)
         if filename is None:

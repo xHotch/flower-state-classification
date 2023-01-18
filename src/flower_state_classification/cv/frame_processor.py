@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-from flower_state_classification.cv.debug.debugsettings import DebugSettings
+from flower_state_classification.debug.debugsettings import DebugSettings
 
 
 class FrameProcessor:
