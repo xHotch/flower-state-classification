@@ -3,7 +3,7 @@ import numpy as np
 
 import torch
 from flower_state_classification.cv.models.modeltypes import Detector
-from transformers import AutoFeatureExtractor, AutoModelForObjectDetection, AutoImageProcessor
+from transformers import AutoModelForObjectDetection, AutoImageProcessor
 
 from flower_state_classification.data.boundingbox import BoundingBox
 
@@ -11,7 +11,6 @@ class HuggingFaceDetector(Detector):
     def __init__(self, model_name, debug_settings, use_gpu=False):
         self.use_gpu = use_gpu
         self.model_name = model_name
-        self.feature_extractor = AutoFeatureExtractor.from_pretrained(self.model_name)
         self.model = AutoModelForObjectDetection.from_pretrained(self.model_name)
         self.image_processor = AutoImageProcessor.from_pretrained(self.model_name)
     
@@ -21,7 +20,6 @@ class HuggingFaceDetector(Detector):
         outputs = self.model(**inputs)
         if self.use_gpu:
             final_output = final_output.to("cpu")
-        final_output = self.feature_extractor.post_process_object_detection(outputs)[0]
         input_size = np.shape(input_frame)[:2]
         target_sizes = torch.tensor([input_size])
         #Target size should be tensor([[height, width]])
