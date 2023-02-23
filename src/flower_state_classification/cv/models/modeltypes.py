@@ -4,13 +4,15 @@ from typing import List, Tuple
 import numpy as np
 
 from flower_state_classification.data.boundingbox import BoundingBox
+from flower_state_classification.util.benchmark import benchmark_fps
 
 class Classifier(ABC):
     """
     Abstract class for all classifiers, i.e. models that classify images or part of images.
     """
     @abstractmethod
-    def predict(frame: np.array) -> str: #Label of the image
+    @benchmark_fps(cooldown = 1)
+    def predict(self, frame: np.array) -> str: #Label of the image
         pass
 
     
@@ -19,5 +21,6 @@ class Detector(ABC):
     Abstract class for all detectors, i.e. models that calculate Boundingboxes for images.
     """
     @abstractmethod
-    def predict(frame: np.array) -> List[Tuple[BoundingBox, str]]: #List of Boundingboxes and their corresponding labels
+    @benchmark_fps(cooldown = 1)
+    def predict(self, frame: np.array) -> List[Tuple[BoundingBox, str]]: #List of Boundingboxes and their corresponding labels
         pass

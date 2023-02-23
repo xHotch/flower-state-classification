@@ -54,14 +54,14 @@ class FrameProcessor:
 
                 if frame_nr not in self.detected_plants:
                     self.detected_plants[frame_nr] = []
-                self.detected_plants[frame_nr].append(Plant(None,frame_nr,bbox,True,classifier_label))
+                self.detected_plants[frame_nr].append(Plant(None,frame_nr,bbox,True,classifier_label, label))
         else:
             logger.debug(f"Object detector did not detect any plants in frame {frame_nr}")
             self.frames_without_plants.append(frame_nr)
 
-        if self.debug_settings.show_bboxes:
+        if self.debug_settings.show_bboxes and frame_nr in self.detected_plants:
             for plant in self.detected_plants[frame_nr]:
-                box_label(frame, plant.bounding_box, plant.label)
+                box_label(frame, plant.bounding_box, f"{plant.detector_label}, {plant.classifier_label}")
 
         # Displaying the image if the debug setting is set
         if self.debug_settings.show_frame:

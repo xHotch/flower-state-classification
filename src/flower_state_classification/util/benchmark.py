@@ -2,6 +2,23 @@ from functools import wraps
 import time
 import logging
 
+class Benchmark_result:
+    function_times = {}
+
+    @staticmethod
+    def add_function_time(function, time):
+        if not function in Benchmark_result.function_times:
+            Benchmark_result.function_times[function.__module__ + function.__name__] = []
+        Benchmark_result.function_times[function.__module__ + function.__name__].append(time)
+
+    @staticmethod
+    def get_function_times(function):
+        return Benchmark_result.function_times[function.__module__ + function.__name__]
+    
+    @staticmethod
+    def get_average_function_time(function):
+        return sum(Benchmark_result.get_function_times(function)) / len(Benchmark_result.get_function_times(function))
+
 def benchmark_time(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -12,6 +29,7 @@ def benchmark_time(func):
 
         logger = logging.getLogger(func.__name__)
         logger.info(f"Executing function {func.__name__} took: {total_time:.3f}s")
+        Benchmark_result.add_function_time(func, total_time)
         wrapper.total_time = total_time
         return result
     return wrapper
@@ -24,6 +42,8 @@ def benchmark_fps(cooldown = 1):
             result = func(*args, **kwargs)
             frame_end = time.perf_counter()
             frame_time = frame_end - frame_start
+
+            Benchmark_result.add_function_time(func, frame_time)
             wrapper.accum_time += frame_time
             wrapper.nr_frames += 1
             logger = logging.getLogger(func.__name__)
