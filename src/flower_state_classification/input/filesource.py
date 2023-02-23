@@ -11,4 +11,10 @@ class VideoFileSource(Source):
         self.video_capture = cv2.VideoCapture(path)
 
     def get_frame(self) -> Tuple[bool, np.ndarray]:
-        return self.video_capture.read()
+        ret, image = self.video_capture.read()
+        if len(image.shape) > 2:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        return ret, image
+
+    def get_framecount(self):
+        return self.video_capture.get(cv2.CAP_PROP_FRAME_COUNT)

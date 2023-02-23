@@ -17,3 +17,4 @@ class Plant:
     frame: int
     bounding_box: BoundingBox
     is_healthy: bool
+    label: str

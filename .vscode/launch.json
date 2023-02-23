@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/flower_state_classification/run.py",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": false
         },
         {
             "name": "Python: Run Pipeline on image folder (Debug)",
@@ -18,8 +18,17 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/flower_state_classification/run.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["C:\\dev\\plantnet\\plantnet_300K\\plantnet_300K\\images"]
+            "justMyCode": false,
+            "args": ["C:\\dev\\plantnet\\plantnet_300K\\plantnet_300K\\images\\test"]
+        },
+        {
+            "name": "Python: Run Pipeline on test folder (Debug)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/flower_state_classification/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": ["C:\\dev\\test\\test2"]
         },
         {
             "name": "Python: Run Pipeline on Video (Debug)",
@@ -27,7 +36,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/flower_state_classification/run.py",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "args": ["F:\\OwnCloud\\Bilder\\Tele\\video\\1_4913717228307742932.MP4"]
         }
     ]

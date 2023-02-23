@@ -8,6 +8,11 @@ url = "https://developer.download.nvidia.com/compute/redist/jp/v461"
 verify_ssl = true
 name = "nvidia_jp_461"
 
+[[source]]
+url = "https://download.pytorch.org/whl/cu117"
+verify_ssl = true
+name = "pytorch"
+
 [packages]
 testresources = "*"
 setuptools = "==49.6.0"
@@ -29,8 +34,13 @@ tensorflow = {version = "==2.7.0+nv22.01", pre = "true", index = "nvidia_jp_461"
 opencv-python = {version = "==4.6.0.66", sys_platform = "== 'win32'"}
 dataclasses = "*"
 black = "*"
+torch = {version = "*", index = "pytorch"}
+torchvision = {version = "*", index = "pytorch"}
+torchaudio = {version = "*", index = "pytorch"}
+timm = "*"
+
 
 [dev-packages]
 
 [requires]
-python_version = "3.7"
+python_version = "3.6"
