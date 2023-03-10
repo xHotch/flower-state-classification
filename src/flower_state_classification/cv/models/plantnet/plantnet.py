@@ -1,4 +1,5 @@
 from collections import defaultdict
+import gc
 import json
 import os
 import torch
@@ -52,7 +53,7 @@ class PlantNet(Classifier):
         device = 'cuda:0' if self.use_gpu else 'cpu'
         d = torch.load(self.weight_file, map_location=device)
         self.model.load_state_dict(d['model'])
-        return d['epoch']
+        self.model.eval()
     
     def _load_classmap(self) -> None:
         with open(os.path.join(self.dir ,"idx_2_species_id.json"),"r") as f:
@@ -70,19 +71,23 @@ class PlantNet(Classifier):
             if species_id in value:
                 return key
 
-    @benchmark_fps(cooldown = 1)
+    # @benchmark_fps(cooldown = 1)
     def predict(self, plant_frame: np.array) -> str:
         frame_resized = cv2.resize(plant_frame, self.image_size)
         frame_tensor = torch.from_numpy(frame_resized).permute(2, 0, 1).unsqueeze(0).float()
-        self.model.eval()
+        
         frame_tensor = frame_tensor.cuda() if self.use_gpu else frame_tensor.cpu()
         with torch.no_grad():
             output = self.model(frame_tensor)
             _, predicted = torch.max(output.data, 1)
-            if self.return_genus:
-                return self._species_id_to_genus(self.idx_to_species_id[str(predicted.item())])
-            else:
-                return self.species_id_to_species_name[self.idx_to_species_id[str(predicted.item())]]
+            idx = str(predicted.item())
+        del frame_tensor
+        del frame_resized
+        del output
+        if self.return_genus:
+            return self._species_id_to_genus(self.idx_to_species_id[idx])
+        else:
+            return self.species_id_to_species_name[self.idx_to_species_id[idx]]
 
     def __str__(self):
         return f"PlantNet({self.model_name})"

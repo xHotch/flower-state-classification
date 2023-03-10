@@ -1,3 +1,4 @@
+import gc
 from typing import List, Tuple
 import numpy as np
 
@@ -21,7 +22,7 @@ class HuggingFaceDetector(Detector):
         inputs = self.image_processor(images=frame, return_tensors="pt")
         outputs = self.model(**inputs)
         if self.use_gpu:
-            final_output = final_output.to("cpu")
+            outputs = outputs.to("cpu")
         input_size = np.shape(input_frame)[:2]
         target_sizes = torch.tensor([input_size])
         #Target size should be tensor([[height, width]])
@@ -30,8 +31,11 @@ class HuggingFaceDetector(Detector):
         results = self.image_processor.post_process_object_detection(outputs, threshold=0.9, target_sizes = target_sizes)[
             0
         ]
-
-        return [(BoundingBox.from_coco(box, target_sizes,score), self.model.config.id2label[label.item()]) for score, label, box in zip(results["scores"], results["labels"], results["boxes"])]
+        del inputs
+        del input_frame
+        del outputs
+        # gc.collect()
+        return [(BoundingBox.from_coco(box, target_sizes,score.item()), self.model.config.id2label[label.item()]) for score, label, box in zip(results["scores"], results["labels"], results["boxes"])]
 
     
     def __str__(self):

@@ -1,20 +1,24 @@
+import gc
 import os
 import numpy as np
 import cv2
 import torch
-
 from flower_state_classification.data.plant import Plant
+from flower_state_classification.cv.models.modeltypes import Classifier, Detector
 from flower_state_classification.cv.models.huggingface import HuggingFaceDetector
 from flower_state_classification.cv.models.plantnet.plantnet import PlantNet
 from flower_state_classification.debug.debugoutput import box_label
-from flower_state_classification.input.source import Source
 from flower_state_classification.debug.debugsettings import DebugSettings
+from flower_state_classification.input.source import Source
 
 import logging
 
 logger=logging.getLogger(__name__)
 
 class FrameProcessor:
+    classifier: Classifier = None
+    detector: Detector = None
+
     def __init__(self, debug_settings: DebugSettings, source: Source):
         self.debug_settings = debug_settings
         if self.debug_settings.write_video:
@@ -29,14 +33,16 @@ class FrameProcessor:
         else:
             self.use_gpu = False
             logger.info("Using CPU")
-        self.classifier = PlantNet(model_name = "resnet18", use_gpu=self.use_gpu, return_genus=False)
+        self.classifier = PlantNet(model_name = "vit_base_patch16_224", use_gpu=self.use_gpu, return_genus=False)
         self.detector = HuggingFaceDetector("facebook/detr-resnet-50", debug_settings)
 
-        self.detected_plants = {}
+        self.classified_plants = {}
         self.frames_without_plants = []
 
     def process_frame(self, frame: np.array, frame_nr: int):
-        detected_plants = self.detector.predict(frame)
+        detected_plants = None
+        if self.detector:
+            detected_plants = self.detector.predict(frame)
         # Classify the image using the classifier
         # TODO currently classifies all detected objects, not only plants
         if detected_plants and self.classifier:
@@ -45,6 +51,7 @@ class FrameProcessor:
                 plant_frame = bbox.cut_frame(plant_frame)
                 logger.debug(f"Object detector detected label: {label} at location: {bbox} with confidence: {bbox.score}")
                 classifier_label = self.classifier.predict(plant_frame)
+                gc.collect()
                 logger.debug(f"Classifier detected label: {classifier_label}")
 
                 if self.debug_settings.show_plant_frames:
@@ -52,15 +59,15 @@ class FrameProcessor:
                     cv2.imshow("plant_frame", cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
                     cv2.waitKey(1)
 
-                if frame_nr not in self.detected_plants:
-                    self.detected_plants[frame_nr] = []
-                self.detected_plants[frame_nr].append(Plant(None,frame_nr,bbox,True,classifier_label, label))
+                if frame_nr not in self.classified_plants:
+                    self.classified_plants[frame_nr] = []
+                self.classified_plants[frame_nr].append(Plant(None,frame_nr,bbox,True,classifier_label, label))
         else:
             logger.debug(f"Object detector did not detect any plants in frame {frame_nr}")
             self.frames_without_plants.append(frame_nr)
 
-        if self.debug_settings.show_bboxes and frame_nr in self.detected_plants:
-            for plant in self.detected_plants[frame_nr]:
+        if self.debug_settings.show_bboxes and frame_nr in self.classified_plants:
+            for plant in self.classified_plants[frame_nr]:
                 box_label(frame, plant.bounding_box, f"{plant.detector_label}, {plant.classifier_label}")
 
         # Displaying the image if the debug setting is set
