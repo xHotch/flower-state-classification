@@ -185,3 +185,11 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 
 output/
+
+# Ignore Images
+*.jpg
+src/flower_state_classification/cv/training/yolov8/coco_val/labels/val/*.txt
+
+# Pytorch Models
+*.pt 
+*.tar

@@ -45,6 +45,7 @@ timm = "*"
 transformers = "*"
 fiftyone = "*"
 pycocotools = "*"
+ultralytics = "<8.0.54"
 
 [dev-packages]
 

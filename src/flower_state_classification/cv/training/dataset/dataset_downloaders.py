@@ -11,7 +11,7 @@ def get_coco_dataset(*args, **kwargs):
         label_types=["detections"],
         classes=["potted plant"]
     )
-    dataset.persistent = True
+    # dataset.persistent = True
     return dataset    
 
 def get_voc_datasets():
@@ -38,6 +38,14 @@ def list_detection_datasets():
         if "detection" in dataset_foz.tags:
             print(dataset)
             print(dataset_foz)
+
+def download_dataset(dataset_name, classes = ["potted plant"]):
+    dataset = foz.load_zoo_dataset(
+        dataset_name,
+        label_types=["detections"],
+        classes=classes
+    )
+    return dataset
 
 if __name__ == "__main__":
     print(fo.config.dataset_zoo_dir)

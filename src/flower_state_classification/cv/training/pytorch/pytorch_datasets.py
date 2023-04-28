@@ -24,7 +24,7 @@ def convert_torch_predictions(preds, det_id, s_id, w, h, classes):
         
     return detections, det_id
 
-def add_detections(model, torch_dataset, view, field_name="predictions"):
+def add_detections(model: torch.nn.Module, torch_dataset, view, field_name="predictions"):
     # Run inference on a dataset and add results to FiftyOne
     torch.set_num_threads(1)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -35,6 +35,7 @@ def add_detections(model, torch_dataset, view, field_name="predictions"):
     image_paths = torch_dataset.img_paths
     classes = torch_dataset.classes
     det_id = 0
+    
     
     with fo.ProgressBar() as pb:
         for img, targets in pb(torch_dataset):

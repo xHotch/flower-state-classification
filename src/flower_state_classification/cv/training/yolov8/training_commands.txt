@@ -1,0 +1,14 @@
+
+yolo task=detect mode=train model=yolov8m.pt data=potted_plant_train/dataset.yaml epochs=80 imgsz=640 batch=-1 lr0=0.001 optimizer=Adam
+
+yolo task=detect mode=train model=yolov8m.pt data=potted_plant_train/dataset.yaml epochs=160 imgsz=640 batch=-1 lr0=0.01 optimizer=Adam
+
+yolo task=detect mode=train model=yolov8m.pt data=potted_plant_train/dataset.yaml epochs=80 imgsz=640 batch=24 lr0=0.01 optimizer=SGD
+
+yolo task=detect mode=train model=yolov8m.pt data=../dataset/coco-voc-open_images-plants/yolo/dataset.yaml epochs=200 imgsz=640 batch=24 lr0=0.0001 optimizer=Adam
+
+
+
+
+#PREDICT
+yolo task=detect mode=predict model=runs/detect/train9/weights/best.pt  source=potted_plant_test/images/val save_txt=True save_conf=True

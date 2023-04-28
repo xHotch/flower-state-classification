@@ -8,7 +8,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 try:
     import flower_state_classification.cv.training.transforms as T
     import flower_state_classification.cv.models.trained_models as trained_models
-    from flower_state_classification.cv.training.dataset_downloaders import get_coco_dataset
+    from flower_state_classification.cv.training.dataset.dataset_downloaders import get_coco_dataset
     from flower_state_classification.cv.training.pytorch_datasets import FiftyOneTorchDataset, add_detections
     from flower_state_classification.cv.training.engine import train_one_epoch, evaluate
     import flower_state_classification.cv.training.utils as utils
@@ -16,7 +16,7 @@ try:
 
 # imports when running with different python interpreter for model training
 except:
-    from dataset_downloaders import get_coco_dataset
+    from flower_state_classification.cv.training.dataset.dataset_downloaders import get_coco_dataset
     from pytorch_datasets import FiftyOneTorchDataset, add_detections
     from engine import train_one_epoch, evaluate
     import transforms as T
@@ -133,5 +133,13 @@ def main():
     session.view = test_view.sort_by("eval_fp", reverse=False)
     session.wait()
 
+def dataset():
+    dataset = get_coco_dataset()
+    dataset.compute_metadata()
+    #session = fo.launch_app(dataset)
+    #session.wait()
+    dataset_view = dataset.match(F("ground_truth.detections").length() > 0)
+
 if __name__ == "__main__":
-    main()
+    #main()
+    dataset()

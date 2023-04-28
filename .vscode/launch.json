@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Run Training",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/flower_state_classification/cv/training/training.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+        },
+        {
             "name": "Python: Run Pipeline using Webcam (Debug)",
             "type": "python",
             "request": "launch",
@@ -28,7 +36,7 @@
             "program": "${workspaceFolder}/src/flower_state_classification/run.py",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["C:\\dev\\test\\test2"]
+            "args": ["C:\\dev\\eigene"]
         },
         {
             "name": "Python: Run Pipeline on Video (Debug)",
