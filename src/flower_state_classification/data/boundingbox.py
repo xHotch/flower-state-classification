@@ -10,8 +10,8 @@ class BoundingBox:
     x2: int
     y2: int
     
-    image_width: int
-    image_height: int
+    image_width: int = 1280
+    image_height: int = 720
 
     score: float = 0.0
 
@@ -36,7 +36,7 @@ class BoundingBox:
         return cls(box[0], box[1], box[2], box[3], image_width, image_height, score)
     
     def cut_frame(self, frame):
-        return frame[self.y:self.y2, self.x:self.x2]
+        return frame[int(self.y):int(self.y2), int(self.x):int(self.x2)]
     
         
     

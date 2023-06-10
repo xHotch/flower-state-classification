@@ -7,6 +7,7 @@ from flower_state_classification.data.plant import Plant
 from flower_state_classification.cv.models.modeltypes import Classifier, Detector
 from flower_state_classification.cv.models.huggingface import HuggingFaceDetector
 from flower_state_classification.cv.models.plantnet.plantnet import PlantNet
+from flower_state_classification.cv.models.paddlepaddle import PaddleDetectionDetector
 from flower_state_classification.debug.debugoutput import box_label
 from flower_state_classification.debug.debugsettings import DebugSettings
 from flower_state_classification.input.source import Source
@@ -29,12 +30,16 @@ class FrameProcessor:
             os.makedirs(self.image_output_folder, exist_ok=True)
         if torch.cuda.is_available():
             self.use_gpu = True
+            device = "GPU"
             logger.info("Using GPU")
         else:
+            device = "CPU"
             self.use_gpu = False
             logger.info("Using CPU")
         self.classifier = PlantNet(model_name = "vit_base_patch16_224", use_gpu=self.use_gpu, return_genus=False)
-        self.detector = HuggingFaceDetector("facebook/detr-resnet-50", debug_settings)
+        #self.detector = HuggingFaceDetector("facebook/detr-resnet-50", debug_settings)
+        dir = os.path.dirname(os.path.abspath(__file__))
+        self.detector = PaddleDetectionDetector(os.path.join(dir,r"models\paddledetection\rtdetr_hgnetv2_l_6x_plants"),device)
 
         self.classified_plants = {}
         self.frames_without_plants = []
@@ -42,7 +47,7 @@ class FrameProcessor:
     def process_frame(self, frame: np.array, frame_nr: int):
         detected_plants = None
         if self.detector:
-            detected_plants = self.detector.predict(frame)
+            detected_plants = self.detector.predict([frame])
         # Classify the image using the classifier
         # TODO currently classifies all detected objects, not only plants
         if detected_plants and self.classifier:

@@ -71,7 +71,7 @@ class PlantNet(Classifier):
             if species_id in value:
                 return key
 
-    # @benchmark_fps(cooldown = 1)
+    @benchmark_fps(cooldown = 1)
     def predict(self, plant_frame: np.array) -> str:
         frame_resized = cv2.resize(plant_frame, self.image_size)
         frame_tensor = torch.from_numpy(frame_resized).permute(2, 0, 1).unsqueeze(0).float()

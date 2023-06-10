@@ -16,7 +16,7 @@ def create_summary(pipeline):
     summary_dict = {
         "source": str(source),
         "nr_frames": source.get_framecount(),
-        "nr_detected_plants": len(frame_processor.detected_plants),
+        "nr_detected_plants": len(frame_processor.classified_plants),
         "nr_frames_without_plants": len(frame_processor.frames_without_plants),
         "detector_model": str(frame_processor.detector),
         "average_detection_time": Benchmark_result.get_average_function_time(frame_processor.detector.predict.__func__),

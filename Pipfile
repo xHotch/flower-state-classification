@@ -31,7 +31,6 @@ flower_state_classification = {editable = true, path = "."}
 # packaging = "*"
 # tensorflow = {version = "==2.7.0+nv22.01", pre = "true", index = "nvidia_jp_461", sys_platform = "== 'linux'"}
 # tensorflow = {version = "==2.7", sys_platform = "== 'win32'"}
-opencv-python = {version = "==4.6.0.66", sys_platform = "== 'win32'"}
 dataclasses = "*"
 black = "*"
 torch = {version = "*", index = "pytorch"}
@@ -46,6 +45,8 @@ transformers = "*"
 fiftyone = "*"
 pycocotools = "*"
 ultralytics = "<8.0.54"
+paddlepaddle = "*"
+opencv-contrib-python = "*"
 
 [dev-packages]
 

@@ -6,7 +6,7 @@ class DebugSettings:
 
     # Video Settings
     show_frame = True
-    show_bboxes = False
+    show_bboxes = True
     write_video = False
     write_images = True
     show_plant_frames = False
