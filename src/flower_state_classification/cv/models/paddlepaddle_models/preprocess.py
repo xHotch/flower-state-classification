@@ -15,7 +15,7 @@
 import cv2
 import numpy as np
 from PIL import Image
-from flower_state_classification.cv.models.paddledetection.keypoint_preprocess import get_affine_transform
+from flower_state_classification.cv.models.paddlepaddle_models.keypoint_preprocess import get_affine_transform
 
 def decode_image(im_file, im_info):
     """read rgb image

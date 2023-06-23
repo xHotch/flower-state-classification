@@ -19,8 +19,8 @@ import sys
 
 from flower_state_classification.data.boundingbox import BoundingBox
 from flower_state_classification.cv.models.modeltypes import Detector
-from flower_state_classification.cv.models.paddledetection.preprocess import preprocess, Resize, NormalizeImage, Permute, PadStride, LetterBoxResize, WarpAffine, Pad, decode_image
-from flower_state_classification.cv.models.paddledetection.utils import nms, coco_clsid2catid
+from flower_state_classification.cv.models.paddlepaddle_models.preprocess import preprocess, Resize, NormalizeImage, Permute, PadStride, LetterBoxResize, WarpAffine, Pad, decode_image
+from flower_state_classification.cv.models.paddlepaddle_models.utils import nms, coco_clsid2catid
 from flower_state_classification.util.benchmark import benchmark_fps
 
 SUPPORT_MODELS = {
