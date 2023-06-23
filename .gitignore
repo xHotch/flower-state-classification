@@ -190,5 +190,5 @@ output/
 src/flower_state_classification/cv/training/yolov8/coco_val/labels/val/*.txt
 
 # Pytorch Models
-*.pt 
+# *.pt # Added to git lfs instead
 *.tar
