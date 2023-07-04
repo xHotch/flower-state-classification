@@ -35,6 +35,29 @@ class BoundingBox:
         
         return cls(box[0], box[1], box[2], box[3], image_width, image_height, score)
     
+    @classmethod
+    def from_relative(cls, box, score, normalized=False):
+        x1, y1, x2, y2 = [int(data) for data in box]
+        if any(box<0 for box in box):
+            logger.warning(f"Negative values in bounding box: {box}")
+            x1 = max(0, x1)
+            y1 = max(0, y1)
+        if normalized:
+            return cls(x1*cls.image_width, y1*cls.image_height, x2*cls.image_width, y2*cls.image_height, score=score)
+        return cls(x1, y1, x2, y2, score=score)
+
+    def area(self):
+        return (self.x2-self.x)*(self.y2-self.y)
+
+    def overlaps(self, other, threshold = 0.9):
+        """
+        Returns true if the IOU of this bounding box with the other bounding box is greater than threshold.
+        """
+        # TODO implement
+        return False
+
+
+
     def cut_frame(self, frame):
         return frame[int(self.y):int(self.y2), int(self.x):int(self.x2)]
     

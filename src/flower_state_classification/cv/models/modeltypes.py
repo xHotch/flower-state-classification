@@ -12,7 +12,7 @@ class Classifier(ABC):
     """
     @abstractmethod
     @benchmark_fps(cooldown = 1)
-    def predict(self, frame: np.array) -> str: #Label of the image
+    def predict(self, frames: List[np.array]) -> str: #Label of the image
         pass
 
     
@@ -22,5 +22,14 @@ class Detector(ABC):
     """
     @abstractmethod
     @benchmark_fps(cooldown = 1)
-    def predict(self, frame: np.array) -> List[Tuple[BoundingBox, str]]: #List of Boundingboxes and their corresponding labels
+    def predict(self, frames: List[np.array]) -> List[Tuple[BoundingBox, str]]: #List of Boundingboxes and their corresponding labels
+        pass
+
+class Tracker(Detector):
+    """
+    Abstract class for all trackers, i.e. models that track objects in videos or consecutive image frames.
+    """
+    @abstractmethod
+    @benchmark_fps(cooldown = 1)
+    def predict(self, frames: List[np.array]) -> List[Tuple[BoundingBox, str]]: #List of Boundingboxes and their corresponding ids
         pass

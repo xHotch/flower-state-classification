@@ -7,15 +7,16 @@ class DebugSettings:
     # Video Settings
     show_frame = True
     show_bboxes = True
-    write_video = False
+    write_video = True
     write_images = True
     show_plant_frames = False
+    show_optical_flow = True
 
     # Logging Settings
     log_level = logging.DEBUG
 
     # Output Settings
-    output_folder = r"E:\dev\flower-state-classification\output"
+    output_folder = r"./output"
 
     # Data Settings
     dataset_download_folder = r"C:\dev\datasets"

@@ -13,10 +13,18 @@ class Benchmark_result:
 
     @staticmethod
     def get_function_times(function):
+        if not Benchmark_result.is_function_benchmarked(function):
+            return 0
         return Benchmark_result.function_times[function.__module__ + function.__name__]
     
     @staticmethod
+    def is_function_benchmarked(function):
+        return function.__module__ + function.__name__ in Benchmark_result.function_times
+
+    @staticmethod
     def get_average_function_time(function):
+        if not Benchmark_result.is_function_benchmarked(function):
+            return 0
         return sum(Benchmark_result.get_function_times(function)) / len(Benchmark_result.get_function_times(function))
 
 def benchmark_time(func):

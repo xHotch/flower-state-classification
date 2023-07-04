@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import Dict
+from flower_state_classification.cv.optical_flow import DenseOpticalFlowCalculator
 
 from flower_state_classification.data.boundingbox import BoundingBox
 from flower_state_classification.data.inputdata import InputData
@@ -6,16 +8,9 @@ from flower_state_classification.data.inputdata import InputData
 
 @dataclass
 class Plant:
-    """
-    Represents a plant in a frame
-
-    At this point, each plant is represented by a bounding box describing the plant for a single frame.
-    In the future, we would like to be able to track plants across frames, so that we can track the health of a plant over time.
-    """
-
-    input_data: InputData
-    frame: int
-    bounding_box: BoundingBox
+    id: str
+    frame_to_bounding_box: Dict[int, BoundingBox]
     is_healthy: bool
     classifier_label: str
     detector_label: str
+    optical_flow_calculator: DenseOpticalFlowCalculator
