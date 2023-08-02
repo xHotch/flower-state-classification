@@ -32,7 +32,7 @@ class FlowerStateClassificationPipeline:
         else:
             self.source = WebcamSource()
         self.run_settings = run_settings
-        self.frame_processor = FrameProcessor(run_settings)
+        self.frame_processor = FrameProcessor(run_settings, source)
 
     @Timer(name="Total Runtime", logger=logger.info)
     def run(self):

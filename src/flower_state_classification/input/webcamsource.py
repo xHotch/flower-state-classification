@@ -10,6 +10,8 @@ class WebcamSource(Source):
     def __init__(self) -> None:
         self.video_capture = cv2.VideoCapture(0)
         self.framecount = 0
+        self._width = int(self.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self._height = int(self.video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     def get_frame(self) -> Tuple[bool, np.ndarray]:
         self.framecount += 1
@@ -20,3 +22,9 @@ class WebcamSource(Source):
 
     def get_framecount(self):
         return self.framecount
+
+    def width(self):
+        return self._width
+    
+    def height(self):
+        return self._height

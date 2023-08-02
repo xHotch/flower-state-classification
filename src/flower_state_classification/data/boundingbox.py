@@ -24,32 +24,43 @@ class BoundingBox:
         box = [int(i) for i in coco_bbox.tolist()]
 
         if any(box < 0 for box in box):
-            logger.warning(f"Negative values in bounding box: {box}")
+            logger.debug(f"Negative values in bounding box: {box}")
             box[0] = max(0, box[0])
             box[1] = max(0, box[1])
 
         if box[2] > image_width:
-            logger.warning(f"Bounding box exceeds image width: {box[2]} > {image_width}")
+            logger.debug(f"Bounding box exceeds image width: {box[2]} > {image_width}")
             box[2] = min(image_width, box[2])
 
         if box[3] > image_height:
-            logger.warning(f"Bounding box exceeds image height: {box[3]} > {image_height}")
+            logger.debug(f"Bounding box exceeds image height: {box[3]} > {image_height}")
             box[3] = min(image_height, box[3])
 
         return cls(box[0], box[1], box[2], box[3], image_width, image_height, score)
 
     @classmethod
-    def from_relative(cls, box, score, normalized=False):
+    def from_relative(cls, box: np.ndarray, score: float, size: np.ndarray, normalized: bool=False):
+        height = size[0]
+        width = size[1]
         x1, y1, x2, y2 = [int(data) for data in box]
         if any(box < 0 for box in box):
-            logger.warning(f"Negative values in bounding box: {box}")
+            logger.debug(f"Negative values in bounding box: {box}")
             x1 = max(0, x1)
             y1 = max(0, y1)
+
+        if x2 > width:
+            logger.debug(f"Bounding box exceeds image width: {x2} > {width}")
+            x2 = min(width, x2)
+
+        if y2 > height:
+            logger.debug(f"Bounding box exceeds image height: {y2} > {height}")
+            y2 = min(height, y2)
+        
         if normalized:
             return cls(
                 x1 * cls.image_width, y1 * cls.image_height, x2 * cls.image_width, y2 * cls.image_height, score=score
             )
-        return cls(x1, y1, x2, y2, score=score)
+        return cls(x1, y1, x2, y2, image_width=width, image_height=height, score=score)
 
     def height(self):
         return self.y2 - self.y

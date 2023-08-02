@@ -13,6 +13,8 @@ class VideoFileSource(Source):
         self.frame_number = 0
         if self.max_frames:
             self.step_size = int(self._get_source_framecount() / self.get_framecount())
+        self._width = int(self.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self._height = int(self.video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     def get_frame(self) -> Tuple[bool, np.ndarray]:
         # Skip frames if max_frames is set
@@ -25,6 +27,12 @@ class VideoFileSource(Source):
         self.frame_number += 1
         return ret, image
 
+    def width(self):
+        return self._width
+    
+    def height(self):
+        return self._height
+    
     def _get_source_framecount(self) -> int:
         return self.video_capture.get(cv2.CAP_PROP_FRAME_COUNT)
 

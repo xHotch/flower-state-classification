@@ -10,6 +10,7 @@ from flower_state_classification.debug.debugoutput import box_label
 from flower_state_classification.debug.settings import CameraMode, Settings
 
 import logging
+from flower_state_classification.input.source import Source
 
 from flower_state_classification.util.timer import Timer
 
@@ -22,15 +23,15 @@ class FrameProcessor:
     classified_plants_new: List[Plant] = None
     last_frame: np.ndarray = None
 
-    def __init__(self, run_settings: Settings):
+    def __init__(self, run_settings: Settings, source: Source):
         self.debug_settings = run_settings
         self.classifier = run_settings.classifier
         self.detector = run_settings.detector
-
+        self.source = source
         if self.debug_settings.write_video:
-            # TODO use max frame size instead of 640x480
+            
             self.video_writer = cv2.VideoWriter(
-                f"{self.debug_settings.output_folder}/output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 30, (640, 480)
+                f"{self.debug_settings.output_folder}/output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 30, (source.width(), source.height())
             )
 
         self.image_output_folder = self.debug_settings.frame_output_folder

@@ -29,4 +29,4 @@ class UltralyticsDetector(Detector):
             # return [(BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i]),names[int(boxes.cls[i])]) for i in range(len(boxes))]
             for i, box in enumerate(boxes):
                 track_id = boxes.id[i] if box.is_track else -1
-                yield (BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i]), track_id)
+                yield (BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i], np.shape(frame)), track_id)

@@ -31,6 +31,8 @@ class Settings:
     magnitude_threshold = 20  # Absolute size in pixel
     magnitude_threshold_scaled = 0.05  # Percentage of the plant height
 
+    decay_factor = 0.9  # How much the magnitude decreases each frame
+
     # Source Settings
     camera_mode = CameraMode.STATIC
 

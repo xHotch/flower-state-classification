@@ -22,6 +22,8 @@ class ImageFolderSource(Source):
         if filename is None:
             return False, None
         image = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+        self._height = image.shape[0]
+        self._width = image.shape[1]
         if len(image.shape) > 2:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return True, image
@@ -31,6 +33,12 @@ class ImageFolderSource(Source):
 
     def get_framecount(self):
         return self.frame_count
+    
+    def width(self):
+        return self._width
+    
+    def height(self):
+        return self._height
 
     def __str__(self):
         return f"ImageFolderSource({self.path})"
