@@ -9,7 +9,6 @@ import numpy as np
 import importlib.resources as pkg_resources
 from torchvision.models import resnet18
 from flower_state_classification.cv.models.modeltypes import Classifier
-from flower_state_classification.util.benchmark import benchmark_fps
 
 
 class PlantNet(Classifier):
@@ -71,7 +70,6 @@ class PlantNet(Classifier):
             if species_id in value:
                 return key
 
-    @benchmark_fps(cooldown = 1)
     def predict(self, plant_frame: np.array) -> str:
         frame_resized = cv2.resize(plant_frame, self.image_size)
         frame_tensor = torch.from_numpy(frame_resized).permute(2, 0, 1).unsqueeze(0).float()

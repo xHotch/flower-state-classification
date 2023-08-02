@@ -44,9 +44,12 @@ timm = "*"
 transformers = "*"
 fiftyone = "*"
 pycocotools = "*"
-ultralytics = "<8.0.54"
+ultralytics = "*"
 paddlepaddle = "*"
 opencv-contrib-python = "*"
+# onnxruntime-gpu = "*"
+# schedule = "*"
+python-telegram-bot = "*"
 
 [dev-packages]
 

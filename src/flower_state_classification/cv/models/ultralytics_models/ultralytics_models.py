@@ -5,7 +5,6 @@ import ultralytics
 from ultralytics import YOLO, RTDETR
 from flower_state_classification.cv.models.modeltypes import Detector
 from flower_state_classification.data.boundingbox import BoundingBox
-from flower_state_classification.util.benchmark import benchmark_fps
 
 class UltralyticsDetector(Detector):
     def __init__(self, model_name:str = "yolov8_m_openimages_best.pt", threshold:float = 0.5) -> None:
@@ -18,10 +17,9 @@ class UltralyticsDetector(Detector):
         else:
             raise ValueError(f"Unknown model name: {model_name}")
     
-    @benchmark_fps(cooldown = 1)
     def predict(self, frames: List[np.array]) -> List[Tuple[BoundingBox, str]]:
         for frame in frames:
-            result = self.model.track(source=frames, conf=self.threshold, persist=True)
+            result = self.model.track(source=frames, conf=self.threshold, persist=True, verbose=False)
             names = result[0].names
             boxes = result[0].boxes.cpu().numpy()
             #return [(BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i]),names[int(boxes.cls[i])]) for i in range(len(boxes))]

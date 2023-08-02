@@ -36,7 +36,7 @@
             "program": "${workspaceFolder}/src/flower_state_classification/run.py",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["C:\\dev\\eigene"]
+            "args": ["C:\\dev\\videos\\frames\\exported_20080628_Plant dying time lapse_Trim.mp4"]
         },
         {
             "name": "Python: Run Pipeline on Video (Debug)",
@@ -45,7 +45,7 @@
             "program": "${workspaceFolder}/src/flower_state_classification/run.py",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["F:\\OwnCloud\\Bilder\\Tele\\video\\1_4913717228307742932.MP4"]
+            "args": ["C:\\dev\\videos\\cut\\20230621_Plant Dying Timelapse.mp4"]
         }
     ]
 }

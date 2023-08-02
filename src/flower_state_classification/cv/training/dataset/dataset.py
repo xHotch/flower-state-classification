@@ -120,10 +120,11 @@ class PottedPlantDataset():
     
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    dataset = PottedPlantDataset("coco-voc-open_images-plants_v3", re_setup= True)
+    dataset = PottedPlantDataset("coco-plants", re_setup= True)
     # self.export(ExportTypes.YOLO)
-    dataset.export(ExportTypes.YOLO, "train")
-    dataset.export(ExportTypes.YOLO, "validation")
+    # dataset.export(ExportTypes.YOLO, "train")
+    # dataset.export(ExportTypes.YOLO, "validation")
+    # dataset.export(ExportTypes.COCO, "validation")
     # dataset.export(ExportTypes.YOLO, ["test", "validation"])
 
     #Delete "predictions" field

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import logging
 
+import numpy as np
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -56,6 +58,13 @@ class BoundingBox:
         # TODO implement
         return False
 
+    def mask_frame(self, frame, value=0):
+        """
+        Masks the frame with the bounding box.
+        """
+        new_frame = np.full(frame.shape, value)
+        new_frame[self.y:self.y2, self.x:self.x2] = frame[self.y:self.y2, self.x:self.x2]
+        return new_frame
 
 
     def cut_frame(self, frame):

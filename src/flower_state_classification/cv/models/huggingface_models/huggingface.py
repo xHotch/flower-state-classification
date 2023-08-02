@@ -7,7 +7,6 @@ from flower_state_classification.cv.models.modeltypes import Detector
 from transformers import AutoModelForObjectDetection, AutoImageProcessor
 
 from flower_state_classification.data.boundingbox import BoundingBox
-from flower_state_classification.util.benchmark import benchmark_fps
 
 class HuggingFaceDetector(Detector):
     def __init__(self, model_name, debug_settings, use_gpu=False):
@@ -16,7 +15,6 @@ class HuggingFaceDetector(Detector):
         self.model = AutoModelForObjectDetection.from_pretrained(self.model_name)
         self.image_processor = AutoImageProcessor.from_pretrained(self.model_name)
     
-    @benchmark_fps(cooldown = 1)
     def predict(self, frame) -> List[Tuple[BoundingBox, str]]:
         input_frame = frame.copy()
         inputs = self.image_processor(images=frame, return_tensors="pt")
