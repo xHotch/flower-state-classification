@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 import copy
 import os
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 import cv2
 from matplotlib import pyplot as plt
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('agg')
 plt.rcParams['animation.html'] = 'jshtml'
 import numpy as np
 import logging
@@ -22,27 +22,33 @@ class OpticalFlowCalculator(ABC):
     green_threshold_high: np.array = np.array([90, 255, 255]) 
 
     # Debug variables
-    flow_angles = []
-    flow_magnitudes = []
+    flow_angles: List[np.ndarray]
+    flow_magnitudes: List[np.ndarray]
 
-    total_angles = []
-    total_magnitudes = []
+    total_angles: List[np.ndarray]
+    total_magnitudes: List[np.ndarray]
 
-    needs_water = False
+    status: List
     previously_notified = False
 
-    def __init__(self, debug_settings: Settings) -> None:
+    def __init__(self, debug_settings: Settings, plant_id = "") -> None:
+        logger.warning("Optical flow calculator initialized")
+        self.flow_angles = []
+        self.flow_magnitudes = []
+        self.total_angles = []
+        self.total_magnitudes = []
         self.debug_settings = debug_settings
-        self.fig, (self.axs, self.axs_mag) = plt.subplots(2, sharex=True)
-        self.fig.suptitle("Optical flow over time")
-
+        
+        self.status = []
+        self.plant_id = plant_id
+        self.scaled_threshold = None
         # self.fig.show()
 
     def get_green_mask(self, frame: np.ndarray, bbox: BoundingBox = None) -> np.ndarray:
         hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
         mask = cv2.inRange(hsv, self.green_threshold_low, self.green_threshold_high)
         if bbox:
-            bbox.mask_frame(mask, value = 0)
+            mask = bbox.mask_frame(mask, value = 0)
         
         if self.debug_settings.show_green_mask:
             if self.debug_settings.show_green_mask and mask is not None:
@@ -66,9 +72,9 @@ class OpticalFlowCalculator(ABC):
 
     def _calculate_angle_and_magnitude(self, optical_flow: np.ndarray, mask: np.ndarray = None) -> Tuple[np.ndarray, np.ndarray]:
         if optical_flow is None:
-            return
+            return None, None
         
-        if mask is not None:
+        if mask is not None: #TODO: check if this is correct
             optical_flow = cv2.bitwise_and(optical_flow, optical_flow, mask=mask)
 
         if len(optical_flow.shape) == 2 or optical_flow.shape[2] == 2:
@@ -83,7 +89,7 @@ class OpticalFlowCalculator(ABC):
 
         if not angle.any() or not magnitude.any():
             logger.debug("No optical flow detected")
-            return
+            return None, None
 
         average_angle = np.mean(angle)
         median_angle = np.median(angle)
@@ -91,13 +97,12 @@ class OpticalFlowCalculator(ABC):
         average_magnitude = np.mean(magnitude)
         median_magnitude = np.median(magnitude)
 
-        logger.info("Optical flow angle: average: {}, median: {}".format(average_angle, median_angle))
-        logger.info("Optical flow magnitude: average: {}, median: {}".format(average_magnitude, median_magnitude))
+        logger.debug("Plant: {}, Optical flow angle: average: {}, median: {}".format(self.plant_id, average_angle, median_angle))
+        logger.debug("Optical flow magnitude: average: {}, median: {}".format(average_magnitude, median_magnitude))
 
         return angle, magnitude
     
-    def plot(self, angles, magnitudes, id: str = None, save = False):
-        
+    def _plot_angle_and_magnitude(self, angles: np.ndarray, magnitudes: np.ndarray) -> None:
         average_angle = [np.mean(angle) for angle in angles]
         average_magnitude = [np.mean(magnitude) for magnitude in magnitudes]
 
@@ -107,34 +112,65 @@ class OpticalFlowCalculator(ABC):
 
         #axs_mag.ylabel("Magnitude [px]")
         self.axs_mag.plot(average_magnitude)
+
+    def plot(self, id: str = None, save = False):
+        self.fig, (self.axs, self.axs_mag) = plt.subplots(2, sharex=True)
+        self.fig.suptitle("Optical flow over time")
+
+        self._plot_angle_and_magnitude(self.flow_angles, self.flow_magnitudes)
+        self._plot_angle_and_magnitude(self.total_angles, self.total_magnitudes)
         
         minimum_angle = self.debug_settings.minimum_angle
         maximum_angle = self.debug_settings.maximum_angle
 
-        self.axs.axhline(y=minimum_angle, color='g', linestyle='--', label="Minimum angle", linewidth=2)
-        self.axs.axhline(y=maximum_angle, color='g', linestyle='--', label="Maximum angle", linewidth=2)
+        self.axs.axhline(y=minimum_angle, color='g', linestyle='--', label="Minimum angle", linewidth=0.5)
+        self.axs.axhline(y=maximum_angle, color='g', linestyle='--', label="Maximum angle", linewidth=0.5)
         
+        self.axs_mag.axhline(y=self.debug_settings.magnitude_threshold, color='g', linestyle='--', label="Magnitude threshold", linewidth=2)
+        self.axs_mag.axhline(y=self.scaled_threshold, color='r', linestyle='--', label="Scaled threshold", linewidth=2)
 
-        if self.needs_water and not self.previously_notified:
-            self.axs.axvline(x=len(angles), color='r', linestyle='--')
-            self.axs_mag.axvline(x=len(angles), color='r', linestyle='--')
-            self.previously_notified = True
 
+        start_idx = None
+        for (index, status) in self.status:
+            if status == "needs_watering" and start_idx is None:
+                start_idx = index
+            elif not status == "needs_watering" and start_idx is not None:
+                end_idx = index
+                
+                self.axs.axvspan(start_idx, end_idx, alpha=0.2, color='blue')
+                self.axs_mag.axvspan(start_idx, end_idx, alpha=0.2, color='blue')
+
+                #self.axs.fill_between(x_values[start_idx:end_idx], 0, 1, alpha=0.3, color='blue')
+                #self.axs_mag.fill_between(x_values[start_idx:end_idx], 0, 1, alpha=0.3, color='blue')
+
+                start_idx = None
+
+        if start_idx is not None and self.status[-1][1] == "needs_watering":
+            end_idx = len(self.status)
+            self.axs.axvspan(start_idx, end_idx, alpha=0.2, color='blue')
+            self.axs_mag.axvspan(start_idx, end_idx, alpha=0.2, color='blue')
+
+
+        self.axs.legend(["Average", "Accumulated"])
+        self.axs_mag.legend(["Average", "Accumulated"])
+        
         if save:
             folder = self.debug_settings.get_output_folder("optical_flow")
             self.fig.savefig(os.path.join(folder,f"{id}.png"))
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
-
+        plt.close(self.fig)
+        
 
 # https://docs.opencv.org/4.7.0/d4/dee/tutorial_optical_flow.html
 class SparseOpticalFlowCalculator(OpticalFlowCalculator):
     
-    last_points: List[Tuple] = []
+    last_points: List[Tuple]
 
-    def __init__(self, settings = None) -> None:
-        super().__init__(settings)
+    def __init__(self, settings = None, plant_id = "") -> None:
+        super().__init__(settings, plant_id)
         self.color = np.random.randint(0, 255, (100, 3))
+        self.last_points = []
         ...
 
     # Parameters for Shi-Tomasi corner detection
@@ -166,14 +202,17 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         return frame_gray
     
-    def visualize(self, image: np.ndarray, old_keypoints, new_keypoints) -> np.ndarray:
+    def visualize(self, image: np.ndarray) -> np.ndarray:
+        old_keypoints, new_keypoints = self.last_points[0][0], self.last_points[-1][0]
+        
         # Create a mask image for drawing purposes
         output = np.zeros_like(image)
         frame = image.copy()
         im2 = image.copy()
         for i, (new, old) in enumerate(zip(new_keypoints, old_keypoints)):
-            a, b = new.ravel()
-            c, d = old.ravel()
+            a, b = old.ravel()
+            c, d = new.ravel()
+            
             
             im2 = cv2.arrowedLine(im2, (int(a), int(b)), (int(c), int(d)), self.color[i].tolist(), 2)
             output = cv2.line(output, (int(a), int(b)), (int(c), int(d)), self.color[i].tolist(), 2)
@@ -195,6 +234,7 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
 
         if not self.last_points:
             p0 = cv2.goodFeaturesToTrack(frame1_gray, mask = mask, **self.feature_params)
+            logger.warning("Found {} corners for plant {}".format(len(p0), self.plant_id))
         else:
             p0 = self.last_points[-1][0]
             # p0 = cv2.goodFeaturesToTrack(frame1_gray, mask = mask, **self.feature_params)
@@ -213,30 +253,41 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
 
     def classify(self, optical_flow: np.ndarray) -> bool:
         angle, magnitude = self._calculate_angle_and_magnitude(optical_flow, None)
+
+        if angle is None or magnitude is None:
+            logger.warning("Could not calculate angle or magnitude for plant {}".format(self.plant_id))
+            return False
+        
         self.flow_angles.append(angle)
         self.flow_magnitudes.append(magnitude)
         
+        index = len(self.flow_angles)
         if len(self.last_points) < 2:
+            self.status.append((index, "enough_water"))
             return False
         total_flow = self.last_points[-1][0] - self.last_points[0][0]
         total_angle, total_magnitude = self._calculate_angle_and_magnitude(total_flow, None)
+
         self.total_angles.append(total_angle)
         self.total_magnitudes.append(total_magnitude)
 
         total_angle = np.mean(total_angle)
         total_magnitude = np.mean(total_magnitude)
 
-        if total_angle > self.debug_settings.minimum_angle and total_angle < self.debug_settings.maximum_angle:
-            logger.info("Optical flow classified as downwards")
+        self.scaled_threshold = self.debug_settings.magnitude_threshold_scaled * self.last_bbox.height() if not self.scaled_threshold else self.scaled_threshold
 
-            if total_magnitude > self.debug_settings.magnitued_threshold:
-                logger.info("Optical flow classified as downwards and strong")
-                #TODO notifiy
-                self.needs_water = True
+        if total_angle > self.debug_settings.minimum_angle and total_angle < self.debug_settings.maximum_angle:
+            logger.debug("Optical flow classified as downwards")
+
+            if total_magnitude > self.debug_settings.magnitude_threshold:
+                logger.debug("Optical flow classified as downwards and strong")
+                
+                self.status.append((index, "needs_watering"))
                 return True
             else:
-                logger.info("Optical flow classified as downwards but not enough magnitude")
+                logger.debug("Optical flow classified as downwards but not enough magnitude")
 
+        self.status.append((index, "enough_water"))
         return False
 
 class DenseOpticalFlowCalculator(OpticalFlowCalculator):

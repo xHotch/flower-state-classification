@@ -16,10 +16,13 @@ class UltralyticsDetector(Detector):
             self.model = RTDETR(os.path.join(self.dir,model_name))
         else:
             raise ValueError(f"Unknown model name: {model_name}")
+        self.reset_tracker = True
     
     def predict(self, frames: List[np.array]) -> List[Tuple[BoundingBox, str]]:
         for frame in frames:
-            result = self.model.track(source=frames, conf=self.threshold, persist=True, verbose=False)
+            persist = not self.reset_tracker
+            result = self.model.track(source=frames, conf=self.threshold, persist=persist, verbose=False)
+            self.reset_tracker = False
             names = result[0].names
             boxes = result[0].boxes.cpu().numpy()
             #return [(BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i]),names[int(boxes.cls[i])]) for i in range(len(boxes))]
