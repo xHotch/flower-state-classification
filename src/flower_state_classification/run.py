@@ -7,6 +7,7 @@ from flower_state_classification.cli import add_parsers
 
 from flower_state_classification.debug.settings import PipelineMode, Settings
 from flower_state_classification.cv.frame_processor import FrameProcessor
+from flower_state_classification.input.source import Source
 from flower_state_classification.input.videofilesource import VideoFileSource
 from flower_state_classification.input.imagefoldersource import ImageFolderSource
 from flower_state_classification.input.webcamsource import WebcamSource
@@ -19,12 +20,14 @@ from flower_state_classification.util.timer import Timer
 logger=logging.getLogger(__name__)
 
 class FlowerStateClassificationPipeline:
-    def __init__(self, filename, run_settings):
-        if filename:
-            if os.path.isdir(filename):
-                self.source = ImageFolderSource(filename)
+    def __init__(self, source, run_settings):
+        if issubclass(type(source), Source):
+            self.source = source
+        elif source:
+            if os.path.isdir(source):
+                self.source = ImageFolderSource(source)
             else:
-                self.source = VideoFileSource(filename)
+                self.source = VideoFileSource(source)
         else:
             self.source = WebcamSource()
         self.run_settings = run_settings
@@ -49,10 +52,11 @@ class FlowerStateClassificationPipeline:
         return True
 
 
-def main(source=None, pipeline_mode=None):
-    run_settings = Settings()
+def main(source=None, pipeline_mode=None, output_folder=None):
+    run_settings = Settings(output_folder)
+    run_settings.setup_logging()
     pipeline = FlowerStateClassificationPipeline(source, run_settings)
-    logging.basicConfig(filename = run_settings.log_file, level=Settings.log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
     pipeline_mode = pipeline_mode if pipeline_mode else run_settings.pipeline_mode
 
     if pipeline_mode is PipelineMode.CONTINUOUS:
