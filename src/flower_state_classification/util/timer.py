@@ -62,7 +62,7 @@ class Timer(ContextDecorator):
         """Get the total time of a timer"""
         if timer_name not in cls.timers:
             raise TimerError(f"Timer {timer_name} does not exist")
-        return sum(cls.timers[timer_name].values())
+        return sum(cls.timers[timer_name])
     
     @classmethod
     def get_number_of_executions(cls, timer_name) -> int:
@@ -78,6 +78,11 @@ class Timer(ContextDecorator):
             raise TimerError(f"Timer {timer_name} does not exist")
         return cls.get_total_time(timer_name) / cls.get_number_of_executions(timer_name)
     
+    @classmethod
+    def has_timer(cls, timer_name) -> bool:
+        """Check if a timer exists"""
+        return timer_name in cls.timers
+
     @classmethod
     def print_summary(cls, logging_function: Callable = print) -> None:
         for timer_name, values in cls.timers.items():

@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict
+from dataclasses import dataclass, field
+from typing import Dict, List
 from flower_state_classification.cv.optical_flow import DenseOpticalFlowCalculator
 
 from flower_state_classification.data.boundingbox import BoundingBox
@@ -14,3 +14,5 @@ class Plant:
     classifier_label: str
     detector_label: str
     optical_flow_calculator: DenseOpticalFlowCalculator
+    unhealthy_frames: List[int] = field(default_factory=list)
+

@@ -48,21 +48,35 @@ class BoundingBox:
             return cls(x1*cls.image_width, y1*cls.image_height, x2*cls.image_width, y2*cls.image_height, score=score)
         return cls(x1, y1, x2, y2, score=score)
 
-    def area(self):
-        return (self.x2-self.x)*(self.y2-self.y)
+    def height(self):
+        return self.y2-self.y
+    
+    def width(self):
+        return self.x2-self.x
 
-    def overlaps(self, other, threshold = 0.9):
+    def area(self):
+        return (self.width())*(self.height())
+    
+    def intersection_area(self, other):
+        x_overlap = max(0, min(self.x2, other.x2) - max(self.x, other.x))
+        y_overlap = max(0, min(self.y2, other.y2) - max(self.y, other.y))
+        return x_overlap * y_overlap
+
+    def union_area(self, other):
+        return self.area() + other.area() - self.intersection_area(other)
+    
+    def overlaps(self, other, threshold = 0.8):
         """
         Returns true if the IOU of this bounding box with the other bounding box is greater than threshold.
         """
-        # TODO implement
-        return False
+        iou = self.intersection_area(other) / self.union_area(other)
+        return iou > threshold
 
     def mask_frame(self, frame, value=0):
         """
         Masks the frame with the bounding box.
         """
-        new_frame = np.full(frame.shape, value)
+        new_frame = np.full(frame.shape, value, dtype=frame.dtype)
         new_frame[self.y:self.y2, self.x:self.x2] = frame[self.y:self.y2, self.x:self.x2]
         return new_frame
 
