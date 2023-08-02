@@ -2,7 +2,9 @@ import websockets
 from flower_state_classification.notifications.notifier import Notifier
 import asyncio
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class WebsocketNotifier(Notifier):
     def __init__(self, websocket_host: str, websocket_port: str) -> None:
@@ -22,9 +24,11 @@ class WebsocketNotifier(Notifier):
         except OSError as e:
             logger.error(f"Could not connect to websocket server at {self.uri}")
 
+
 def main():
     notifier = WebsocketNotifier("localhost", 8765)
     notifier.notify("test")
+
 
 if __name__ == "__main__":
     main()

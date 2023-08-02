@@ -15,4 +15,3 @@ class Plant:
     detector_label: str
     optical_flow_calculator: DenseOpticalFlowCalculator
     unhealthy_frames: List[int] = field(default_factory=list)
-

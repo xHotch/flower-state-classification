@@ -1,0 +1,24 @@
+import os
+from flower_state_classification.debug.settings import PipelineMode
+from flower_state_classification.input.videofilesource import VideoFileSource
+from flower_state_classification.run import main as run_main
+
+
+def main():
+    video_folder = r"C:\dev\videos\cut"
+    list_of_videos = [file for file in os.listdir(video_folder) if file.endswith(".mp4")]
+    list_of_videos.sort(reverse=True)
+    max_number_of_frames = [10, 20, 50, 100, 500, 1000]
+
+    for video in list_of_videos:
+        for max_frames in max_number_of_frames:
+            try:
+                source = VideoFileSource(os.path.join(video_folder, video), max_frames)
+                run_main(source, PipelineMode.CONTINUOUS, video)
+            except Exception as e:
+                print(f"Error while processing {video}: {e}")
+                print("-----------------------------------")
+
+
+if __name__ == "__main__":
+    main()

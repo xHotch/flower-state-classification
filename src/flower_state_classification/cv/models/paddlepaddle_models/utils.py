@@ -25,202 +25,151 @@ def argsparser():
         "--model_dir",
         type=str,
         default=None,
-        help=("Directory include:'model.pdiparams', 'model.pdmodel', "
-              "'infer_cfg.yml', created by tools/export_model.py."),
-        required=True)
+        help=(
+            "Directory include:'model.pdiparams', 'model.pdmodel', "
+            "'infer_cfg.yml', created by tools/export_model.py."
+        ),
+        required=True,
+    )
+    parser.add_argument("--image_file", type=str, default=None, help="Path of image file.")
     parser.add_argument(
-        "--image_file", type=str, default=None, help="Path of image file.")
-    parser.add_argument(
-        "--image_dir",
-        type=str,
-        default=None,
-        help="Dir of image file, `image_file` has a higher priority.")
-    parser.add_argument(
-        "--batch_size", type=int, default=1, help="batch_size for inference.")
+        "--image_dir", type=str, default=None, help="Dir of image file, `image_file` has a higher priority."
+    )
+    parser.add_argument("--batch_size", type=int, default=1, help="batch_size for inference.")
     parser.add_argument(
         "--video_file",
         type=str,
         default=None,
-        help="Path of video file, `video_file` or `camera_id` has a highest priority."
+        help="Path of video file, `video_file` or `camera_id` has a highest priority.",
     )
+    parser.add_argument("--camera_id", type=int, default=-1, help="device id of camera to predict.")
+    parser.add_argument("--threshold", type=float, default=0.5, help="Threshold of score.")
+    parser.add_argument("--output_dir", type=str, default="output", help="Directory of output visualization files.")
     parser.add_argument(
-        "--camera_id",
-        type=int,
-        default=-1,
-        help="device id of camera to predict.")
-    parser.add_argument(
-        "--threshold", type=float, default=0.5, help="Threshold of score.")
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        default="output",
-        help="Directory of output visualization files.")
-    parser.add_argument(
-        "--run_mode",
-        type=str,
-        default='paddle',
-        help="mode of running(paddle/trt_fp32/trt_fp16/trt_int8)")
+        "--run_mode", type=str, default="paddle", help="mode of running(paddle/trt_fp32/trt_fp16/trt_int8)"
+    )
     parser.add_argument(
         "--device",
         type=str,
-        default='cpu',
-        help="Choose the device you want to run, it can be: CPU/GPU/XPU, default is CPU."
+        default="cpu",
+        help="Choose the device you want to run, it can be: CPU/GPU/XPU, default is CPU.",
     )
-    parser.add_argument(
-        "--use_gpu",
-        type=ast.literal_eval,
-        default=False,
-        help="Deprecated, please use `--device`.")
+    parser.add_argument("--use_gpu", type=ast.literal_eval, default=False, help="Deprecated, please use `--device`.")
     parser.add_argument(
         "--run_benchmark",
         type=ast.literal_eval,
         default=False,
-        help="Whether to predict a image_file repeatedly for benchmark")
-    parser.add_argument(
-        "--enable_mkldnn",
-        type=ast.literal_eval,
-        default=False,
-        help="Whether use mkldnn with CPU.")
+        help="Whether to predict a image_file repeatedly for benchmark",
+    )
+    parser.add_argument("--enable_mkldnn", type=ast.literal_eval, default=False, help="Whether use mkldnn with CPU.")
     parser.add_argument(
         "--enable_mkldnn_bfloat16",
         type=ast.literal_eval,
         default=False,
-        help="Whether use mkldnn bfloat16 inference with CPU.")
-    parser.add_argument(
-        "--cpu_threads", type=int, default=1, help="Num of threads with CPU.")
-    parser.add_argument(
-        "--trt_min_shape", type=int, default=1, help="min_shape for TensorRT.")
-    parser.add_argument(
-        "--trt_max_shape",
-        type=int,
-        default=1280,
-        help="max_shape for TensorRT.")
-    parser.add_argument(
-        "--trt_opt_shape",
-        type=int,
-        default=640,
-        help="opt_shape for TensorRT.")
+        help="Whether use mkldnn bfloat16 inference with CPU.",
+    )
+    parser.add_argument("--cpu_threads", type=int, default=1, help="Num of threads with CPU.")
+    parser.add_argument("--trt_min_shape", type=int, default=1, help="min_shape for TensorRT.")
+    parser.add_argument("--trt_max_shape", type=int, default=1280, help="max_shape for TensorRT.")
+    parser.add_argument("--trt_opt_shape", type=int, default=640, help="opt_shape for TensorRT.")
     parser.add_argument(
         "--trt_calib_mode",
         type=bool,
         default=False,
-        help="If the model is produced by TRT offline quantitative "
-        "calibration, trt_calib_mode need to set True.")
+        help="If the model is produced by TRT offline quantitative " "calibration, trt_calib_mode need to set True.",
+    )
+    parser.add_argument("--save_images", type=ast.literal_eval, default=True, help="Save visualization image results.")
+    parser.add_argument("--save_mot_txts", action="store_true", help="Save tracking results (txt).")
     parser.add_argument(
-        '--save_images',
-        type=ast.literal_eval,
-        default=True,
-        help='Save visualization image results.')
+        "--save_mot_txt_per_img", action="store_true", help="Save tracking results (txt) for each image."
+    )
     parser.add_argument(
-        '--save_mot_txts',
-        action='store_true',
-        help='Save tracking results (txt).')
-    parser.add_argument(
-        '--save_mot_txt_per_img',
-        action='store_true',
-        help='Save tracking results (txt) for each image.')
-    parser.add_argument(
-        '--scaled',
+        "--scaled",
         type=bool,
         default=False,
-        help="Whether coords after detector outputs are scaled, False in JDE YOLOv3 "
-        "True in general detector.")
-    parser.add_argument(
-        "--tracker_config", type=str, default=None, help=("tracker donfig"))
+        help="Whether coords after detector outputs are scaled, False in JDE YOLOv3 " "True in general detector.",
+    )
+    parser.add_argument("--tracker_config", type=str, default=None, help=("tracker donfig"))
     parser.add_argument(
         "--reid_model_dir",
         type=str,
         default=None,
-        help=("Directory include:'model.pdiparams', 'model.pdmodel', "
-              "'infer_cfg.yml', created by tools/export_model.py."))
+        help=(
+            "Directory include:'model.pdiparams', 'model.pdmodel', "
+            "'infer_cfg.yml', created by tools/export_model.py."
+        ),
+    )
+    parser.add_argument("--reid_batch_size", type=int, default=50, help="max batch_size for reid model inference.")
     parser.add_argument(
-        "--reid_batch_size",
-        type=int,
-        default=50,
-        help="max batch_size for reid model inference.")
-    parser.add_argument(
-        '--use_dark',
+        "--use_dark",
         type=ast.literal_eval,
         default=True,
-        help='whether to use darkpose to get better keypoint position predict ')
+        help="whether to use darkpose to get better keypoint position predict ",
+    )
+    parser.add_argument("--action_file", type=str, default=None, help="Path of input file for action recognition.")
     parser.add_argument(
-        "--action_file",
-        type=str,
-        default=None,
-        help="Path of input file for action recognition.")
-    parser.add_argument(
-        "--window_size",
-        type=int,
-        default=50,
-        help="Temporal size of skeleton feature for action recognition.")
-    parser.add_argument(
-        "--random_pad",
-        type=ast.literal_eval,
-        default=False,
-        help="Whether do random padding for action recognition.")
-    parser.add_argument(
-        "--save_results",
-        action='store_true',
-        default=False,
-        help="Whether save detection result to file using coco format")
-    parser.add_argument(
-        '--use_coco_category',
-        action='store_true',
-        default=False,
-        help='Whether to use the coco format dictionary `clsid2catid`')
-    parser.add_argument(
-        "--slice_infer",
-        action='store_true',
-        help="Whether to slice the image and merge the inference results for small object detection."
+        "--window_size", type=int, default=50, help="Temporal size of skeleton feature for action recognition."
     )
     parser.add_argument(
-        '--slice_size',
-        nargs='+',
-        type=int,
-        default=[640, 640],
-        help="Height of the sliced image.")
+        "--random_pad", type=ast.literal_eval, default=False, help="Whether do random padding for action recognition."
+    )
+    parser.add_argument(
+        "--save_results",
+        action="store_true",
+        default=False,
+        help="Whether save detection result to file using coco format",
+    )
+    parser.add_argument(
+        "--use_coco_category",
+        action="store_true",
+        default=False,
+        help="Whether to use the coco format dictionary `clsid2catid`",
+    )
+    parser.add_argument(
+        "--slice_infer",
+        action="store_true",
+        help="Whether to slice the image and merge the inference results for small object detection.",
+    )
+    parser.add_argument("--slice_size", nargs="+", type=int, default=[640, 640], help="Height of the sliced image.")
     parser.add_argument(
         "--overlap_ratio",
-        nargs='+',
+        nargs="+",
         type=float,
         default=[0.25, 0.25],
-        help="Overlap height ratio of the sliced image.")
+        help="Overlap height ratio of the sliced image.",
+    )
     parser.add_argument(
         "--combine_method",
         type=str,
-        default='nms',
-        help="Combine method of the sliced images' detection results, choose in ['nms', 'nmm', 'concat']."
+        default="nms",
+        help="Combine method of the sliced images' detection results, choose in ['nms', 'nmm', 'concat'].",
+    )
+    parser.add_argument("--match_threshold", type=float, default=0.6, help="Combine method matching threshold.")
+    parser.add_argument(
+        "--match_metric", type=str, default="ios", help="Combine method matching metric, choose in ['iou', 'ios']."
     )
     parser.add_argument(
-        "--match_threshold",
-        type=float,
-        default=0.6,
-        help="Combine method matching threshold.")
-    parser.add_argument(
-        "--match_metric",
-        type=str,
-        default='ios',
-        help="Combine method matching metric, choose in ['iou', 'ios'].")
-    parser.add_argument(
         "--collect_trt_shape_info",
-        action='store_true',
+        action="store_true",
         default=False,
-        help="Whether to collect dynamic shape before using tensorrt.")
+        help="Whether to collect dynamic shape before using tensorrt.",
+    )
     parser.add_argument(
         "--tuned_trt_shape_file",
         type=str,
         default="shape_range_info.pbtxt",
-        help="Path of a dynamic shape file for tensorrt.")
+        help="Path of a dynamic shape file for tensorrt.",
+    )
     return parser
 
 
 class Times(object):
     def __init__(self):
-        self.time = 0.
+        self.time = 0.0
         # start time
-        self.st = 0.
+        self.st = 0.0
         # end time
-        self.et = 0.
+        self.et = 0.0
 
     def start(self):
         self.st = time.time()
@@ -233,9 +182,9 @@ class Times(object):
             self.time = (self.et - self.st) / repeats
 
     def reset(self):
-        self.time = 0.
-        self.st = 0.
-        self.et = 0.
+        self.time = 0.0
+        self.st = 0.0
+        self.et = 0.0
 
     def value(self):
         return round(self.time, 4)
@@ -262,33 +211,29 @@ class Timer(Times):
             total_time = total_time + track_time
         total_time = round(total_time, 4)
         print("------------------ Inference Time Info ----------------------")
-        print("total_time(ms): {}, img_num: {}".format(total_time * 1000,
-                                                       self.img_num))
-        preprocess_time = round(pre_time / max(1, self.img_num),
-                                4) if average else pre_time
-        postprocess_time = round(post_time / max(1, self.img_num),
-                                 4) if average else post_time
-        inference_time = round(infer_time / max(1, self.img_num),
-                               4) if average else infer_time
-        tracking_time = round(track_time / max(1, self.img_num),
-                              4) if average else track_time
+        print("total_time(ms): {}, img_num: {}".format(total_time * 1000, self.img_num))
+        preprocess_time = round(pre_time / max(1, self.img_num), 4) if average else pre_time
+        postprocess_time = round(post_time / max(1, self.img_num), 4) if average else post_time
+        inference_time = round(infer_time / max(1, self.img_num), 4) if average else infer_time
+        tracking_time = round(track_time / max(1, self.img_num), 4) if average else track_time
 
         average_latency = total_time / max(1, self.img_num)
         qps = 0
         if total_time > 0:
             qps = 1 / average_latency
-        print("average latency time(ms): {:.2f}, QPS: {:2f}".format(
-            average_latency * 1000, qps))
+        print("average latency time(ms): {:.2f}, QPS: {:2f}".format(average_latency * 1000, qps))
         if self.with_tracker:
             print(
-                "preprocess_time(ms): {:.2f}, inference_time(ms): {:.2f}, postprocess_time(ms): {:.2f}, tracking_time(ms): {:.2f}".
-                format(preprocess_time * 1000, inference_time * 1000,
-                       postprocess_time * 1000, tracking_time * 1000))
+                "preprocess_time(ms): {:.2f}, inference_time(ms): {:.2f}, postprocess_time(ms): {:.2f}, tracking_time(ms): {:.2f}".format(
+                    preprocess_time * 1000, inference_time * 1000, postprocess_time * 1000, tracking_time * 1000
+                )
+            )
         else:
             print(
-                "preprocess_time(ms): {:.2f}, inference_time(ms): {:.2f}, postprocess_time(ms): {:.2f}".
-                format(preprocess_time * 1000, inference_time * 1000,
-                       postprocess_time * 1000))
+                "preprocess_time(ms): {:.2f}, inference_time(ms): {:.2f}, postprocess_time(ms): {:.2f}".format(
+                    preprocess_time * 1000, inference_time * 1000, postprocess_time * 1000
+                )
+            )
 
     def report(self, average=False):
         dic = {}
@@ -297,19 +242,15 @@ class Timer(Times):
         post_time = self.postprocess_time_s.value()
         track_time = self.tracking_time_s.value()
 
-        dic['preprocess_time_s'] = round(pre_time / max(1, self.img_num),
-                                         4) if average else pre_time
-        dic['inference_time_s'] = round(infer_time / max(1, self.img_num),
-                                        4) if average else infer_time
-        dic['postprocess_time_s'] = round(post_time / max(1, self.img_num),
-                                          4) if average else post_time
-        dic['img_num'] = self.img_num
+        dic["preprocess_time_s"] = round(pre_time / max(1, self.img_num), 4) if average else pre_time
+        dic["inference_time_s"] = round(infer_time / max(1, self.img_num), 4) if average else infer_time
+        dic["postprocess_time_s"] = round(post_time / max(1, self.img_num), 4) if average else post_time
+        dic["img_num"] = self.img_num
         total_time = pre_time + infer_time + post_time
         if self.with_tracker:
-            dic['tracking_time_s'] = round(track_time / max(1, self.img_num),
-                                           4) if average else track_time
+            dic["tracking_time_s"] = round(track_time / max(1, self.img_num), 4) if average else track_time
             total_time = total_time + track_time
-        dic['total_time_s'] = round(total_time, 4)
+        dic["total_time_s"] = round(total_time, 4)
         return dic
 
 
@@ -321,12 +262,13 @@ def get_current_memory_mb():
     import pynvml
     import psutil
     import GPUtil
-    gpu_id = int(os.environ.get('CUDA_VISIBLE_DEVICES', 0))
+
+    gpu_id = int(os.environ.get("CUDA_VISIBLE_DEVICES", 0))
 
     pid = os.getpid()
     p = psutil.Process(pid)
     info = p.memory_full_info()
-    cpu_mem = info.uss / 1024. / 1024.
+    cpu_mem = info.uss / 1024.0 / 1024.0
     gpu_mem = 0
     gpu_percent = 0
     gpus = GPUtil.getGPUs()
@@ -335,26 +277,27 @@ def get_current_memory_mb():
         pynvml.nvmlInit()
         handle = pynvml.nvmlDeviceGetHandleByIndex(0)
         meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
-        gpu_mem = meminfo.used / 1024. / 1024.
+        gpu_mem = meminfo.used / 1024.0 / 1024.0
     return round(cpu_mem, 4), round(gpu_mem, 4), round(gpu_percent, 4)
 
 
-def multiclass_nms(bboxs, num_classes, match_threshold=0.6, match_metric='iou'):
+def multiclass_nms(bboxs, num_classes, match_threshold=0.6, match_metric="iou"):
     final_boxes = []
     for c in range(num_classes):
         idxs = bboxs[:, 0] == c
-        if np.count_nonzero(idxs) == 0: continue
+        if np.count_nonzero(idxs) == 0:
+            continue
         r = nms(bboxs[idxs, 1:], match_threshold, match_metric)
         final_boxes.append(np.concatenate([np.full((r.shape[0], 1), c), r], 1))
     return final_boxes
 
 
-def nms(dets, match_threshold=0.6, match_metric='iou'):
-    """ Apply NMS to avoid detecting too many overlapping bounding boxes.
-        Args:
-            dets: shape [N, 5], [score, x1, y1, x2, y2]
-            match_metric: 'iou' or 'ios'
-            match_threshold: overlap thresh for match metric.
+def nms(dets, match_threshold=0.6, match_metric="iou"):
+    """Apply NMS to avoid detecting too many overlapping bounding boxes.
+    Args:
+        dets: shape [N, 5], [score, x1, y1, x2, y2]
+        match_metric: 'iou' or 'ios'
+        match_threshold: overlap thresh for match metric.
     """
     if dets.shape[0] == 0:
         return dets[[], :]
@@ -389,10 +332,10 @@ def nms(dets, match_threshold=0.6, match_metric='iou'):
             w = max(0.0, xx2 - xx1 + 1)
             h = max(0.0, yy2 - yy1 + 1)
             inter = w * h
-            if match_metric == 'iou':
+            if match_metric == "iou":
                 union = iarea + areas[j] - inter
                 match_value = inter / union
-            elif match_metric == 'ios':
+            elif match_metric == "ios":
                 smaller = min(iarea, areas[j])
                 match_value = inter / smaller
             else:
@@ -484,7 +427,7 @@ coco_clsid2catid = {
     76: 87,
     77: 88,
     78: 89,
-    79: 90
+    79: 90,
 }
 
 
@@ -492,7 +435,7 @@ def gaussian_radius(bbox_size, min_overlap):
     height, width = bbox_size
 
     a1 = 1
-    b1 = (height + width)
+    b1 = height + width
     c1 = width * height * (1 - min_overlap) / (1 + min_overlap)
     sq1 = np.sqrt(b1**2 - 4 * a1 * c1)
     radius1 = (b1 + sq1) / (2 * a1)
@@ -512,11 +455,10 @@ def gaussian_radius(bbox_size, min_overlap):
 
 
 def gaussian2D(shape, sigma_x=1, sigma_y=1):
-    m, n = [(ss - 1.) / 2. for ss in shape]
-    y, x = np.ogrid[-m:m + 1, -n:n + 1]
+    m, n = [(ss - 1.0) / 2.0 for ss in shape]
+    y, x = np.ogrid[-m : m + 1, -n : n + 1]
 
-    h = np.exp(-(x * x / (2 * sigma_x * sigma_x) + y * y / (2 * sigma_y *
-                                                            sigma_y)))
+    h = np.exp(-(x * x / (2 * sigma_x * sigma_x) + y * y / (2 * sigma_y * sigma_y)))
     h[h < np.finfo(h.dtype).eps * h.max()] = 0
     return h
 
@@ -526,8 +468,7 @@ def draw_umich_gaussian(heatmap, center, radius, k=1):
     draw_umich_gaussian, refer to https://github.com/xingyizhou/CenterNet/blob/master/src/lib/utils/image.py#L126
     """
     diameter = 2 * radius + 1
-    gaussian = gaussian2D(
-        (diameter, diameter), sigma_x=diameter / 6, sigma_y=diameter / 6)
+    gaussian = gaussian2D((diameter, diameter), sigma_x=diameter / 6, sigma_y=diameter / 6)
 
     x, y = int(center[0]), int(center[1])
 
@@ -536,9 +477,8 @@ def draw_umich_gaussian(heatmap, center, radius, k=1):
     left, right = min(x, radius), min(width - x, radius + 1)
     top, bottom = min(y, radius), min(height - y, radius + 1)
 
-    masked_heatmap = heatmap[y - top:y + bottom, x - left:x + right]
-    masked_gaussian = gaussian[radius - top:radius + bottom, radius - left:
-                               radius + right]
+    masked_heatmap = heatmap[y - top : y + bottom, x - left : x + right]
+    masked_gaussian = gaussian[radius - top : radius + bottom, radius - left : radius + right]
     if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0:
         np.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
     return heatmap

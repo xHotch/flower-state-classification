@@ -17,7 +17,8 @@ import logging
 
 from flower_state_classification.util.timer import Timer
 
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
 
 class FlowerStateClassificationPipeline:
     def __init__(self, source, run_settings):
@@ -56,7 +57,7 @@ def main(source=None, pipeline_mode=None, output_folder=None):
     run_settings = Settings(output_folder)
     run_settings.setup_logging()
     pipeline = FlowerStateClassificationPipeline(source, run_settings)
-    
+
     pipeline_mode = pipeline_mode if pipeline_mode else run_settings.pipeline_mode
 
     if pipeline_mode is PipelineMode.CONTINUOUS:
@@ -65,9 +66,10 @@ def main(source=None, pipeline_mode=None, output_folder=None):
 
     elif pipeline_mode is PipelineMode.SCHEDULED:
         ...
-        #schedule.every().day().
+        # schedule.every().day().
 
     Timer.print_summary(logging.info)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

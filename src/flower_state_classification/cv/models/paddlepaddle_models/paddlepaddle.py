@@ -19,15 +19,48 @@ import sys
 
 from flower_state_classification.data.boundingbox import BoundingBox
 from flower_state_classification.cv.models.modeltypes import Detector
-from flower_state_classification.cv.models.paddlepaddle_models.preprocess import preprocess, Resize, NormalizeImage, Permute, PadStride, LetterBoxResize, WarpAffine, Pad, decode_image
+from flower_state_classification.cv.models.paddlepaddle_models.preprocess import (
+    preprocess,
+    Resize,
+    NormalizeImage,
+    Permute,
+    PadStride,
+    LetterBoxResize,
+    WarpAffine,
+    Pad,
+    decode_image,
+)
 from flower_state_classification.cv.models.paddlepaddle_models.utils import nms, coco_clsid2catid
 
 SUPPORT_MODELS = {
-    'YOLO', 'PPYOLOE', 'RCNN', 'SSD', 'Face', 'FCOS', 'SOLOv2', 'TTFNet',
-    'S2ANet', 'JDE', 'FairMOT', 'DeepSORT', 'GFL', 'PicoDet', 'CenterNet',
-    'TOOD', 'RetinaNet', 'StrongBaseline', 'STGCN', 'YOLOX', 'YOLOF', 'PPHGNet',
-    'PPLCNet', 'DETR', 'CenterTrack'
+    "YOLO",
+    "PPYOLOE",
+    "RCNN",
+    "SSD",
+    "Face",
+    "FCOS",
+    "SOLOv2",
+    "TTFNet",
+    "S2ANet",
+    "JDE",
+    "FairMOT",
+    "DeepSORT",
+    "GFL",
+    "PicoDet",
+    "CenterNet",
+    "TOOD",
+    "RetinaNet",
+    "StrongBaseline",
+    "STGCN",
+    "YOLOX",
+    "YOLOF",
+    "PPHGNet",
+    "PPLCNet",
+    "DETR",
+    "CenterTrack",
 }
+
+
 class PaddleDetectionDetector(Detector):
     """
     Args:
@@ -46,26 +79,28 @@ class PaddleDetectionDetector(Detector):
         enable_mkldnn_bfloat16 (bool): whether to turn on mkldnn bfloat16
         output_dir (str): The path of output
         threshold (float): The threshold of score for visualization
-        delete_shuffle_pass (bool): whether to remove shuffle_channel_detect_pass in TensorRT. 
+        delete_shuffle_pass (bool): whether to remove shuffle_channel_detect_pass in TensorRT.
                                     Used by action model.
     """
 
-    def __init__(self,
-                 model_dir,
-                 device='CPU',
-                 run_mode='paddle',
-                 batch_size=1,
-                 trt_min_shape=1,
-                 trt_max_shape=1280,
-                 trt_opt_shape=640,
-                 trt_calib_mode=False,
-                 cpu_threads=1,
-                 enable_mkldnn=False,
-                 enable_mkldnn_bfloat16=False,
-                 output_dir='output',
-                 threshold=0.5,
-                 delete_shuffle_pass=False,
-                 use_coco_category=False):
+    def __init__(
+        self,
+        model_dir,
+        device="CPU",
+        run_mode="paddle",
+        batch_size=1,
+        trt_min_shape=1,
+        trt_max_shape=1280,
+        trt_opt_shape=640,
+        trt_calib_mode=False,
+        cpu_threads=1,
+        enable_mkldnn=False,
+        enable_mkldnn_bfloat16=False,
+        output_dir="output",
+        threshold=0.5,
+        delete_shuffle_pass=False,
+        use_coco_category=False,
+    ):
         self.pred_config = self.set_config(model_dir)
         self.predictor, self.config = load_predictor(
             model_dir,
@@ -82,9 +117,9 @@ class PaddleDetectionDetector(Detector):
             cpu_threads=cpu_threads,
             enable_mkldnn=enable_mkldnn,
             enable_mkldnn_bfloat16=enable_mkldnn_bfloat16,
-            delete_shuffle_pass=delete_shuffle_pass)
+            delete_shuffle_pass=delete_shuffle_pass,
+        )
         self.use_coco_category = use_coco_category
-
 
         self.cpu_mem, self.gpu_mem, self.gpu_util = 0, 0, 0
         self.batch_size = batch_size
@@ -98,7 +133,7 @@ class PaddleDetectionDetector(Detector):
         preprocess_ops = []
         for op_info in self.pred_config.preprocess_infos:
             new_op_info = op_info.copy()
-            op_type = new_op_info.pop('type')
+            op_type = new_op_info.pop("type")
             preprocess_ops.append(eval(op_type)(**new_op_info))
 
         input_im_lst = []
@@ -111,8 +146,8 @@ class PaddleDetectionDetector(Detector):
         input_names = self.predictor.get_input_names()
         for i in range(len(input_names)):
             input_tensor = self.predictor.get_input_handle(input_names[i])
-            if input_names[i] == 'x':
-                input_tensor.copy_from_cpu(inputs['image'])
+            if input_names[i] == "x":
+                input_tensor.copy_from_cpu(inputs["image"])
             else:
                 input_tensor.copy_from_cpu(inputs[input_names[i]])
 
@@ -120,22 +155,21 @@ class PaddleDetectionDetector(Detector):
 
     def postprocess(self, inputs, result):
         # postprocess output of predictor
-        np_boxes_num = result['boxes_num']
-        assert isinstance(np_boxes_num, np.ndarray), \
-            '`np_boxes_num` should be a `numpy.ndarray`'
+        np_boxes_num = result["boxes_num"]
+        assert isinstance(np_boxes_num, np.ndarray), "`np_boxes_num` should be a `numpy.ndarray`"
 
         result = {k: v for k, v in result.items() if v is not None}
         return result
 
     def filter_box(self, result, threshold):
-        np_boxes_num = result['boxes_num']
-        boxes = result['boxes']
+        np_boxes_num = result["boxes_num"]
+        boxes = result["boxes"]
         start_idx = 0
         filter_boxes = []
         filter_num = []
         for i in range(len(np_boxes_num)):
             boxes_num = np_boxes_num[i]
-            boxes_i = boxes[start_idx:start_idx + boxes_num, :]
+            boxes_i = boxes[start_idx : start_idx + boxes_num, :]
             idx = boxes_i[:, 1] > threshold
             filter_boxes_i = boxes_i[idx, :]
             filter_boxes.append(filter_boxes_i)
@@ -143,11 +177,11 @@ class PaddleDetectionDetector(Detector):
             start_idx += boxes_num
         boxes = np.concatenate(filter_boxes)
         filter_num = np.array(filter_num)
-        filter_res = {'boxes': boxes, 'boxes_num': filter_num}
+        filter_res = {"boxes": boxes, "boxes_num": filter_num}
         return filter_res
 
     def _predict(self, repeats=1, run_benchmark=False):
-        '''
+        """
         Args:
             repeats (int): repeats number for prediction
         Returns:
@@ -155,7 +189,7 @@ class PaddleDetectionDetector(Detector):
                             matix element:[class, score, x_min, y_min, x_max, y_max]
                             MaskRCNN's result include 'masks': np.ndarray:
                             shape: [N, im_h, im_w]
-        '''
+        """
         # model prediction
         np_boxes_num, np_boxes, np_masks = np.array([0]), None, None
 
@@ -165,7 +199,7 @@ class PaddleDetectionDetector(Detector):
             boxes_tensor = self.predictor.get_output_handle(output_names[0])
             np_boxes = boxes_tensor.copy_to_cpu()
             if len(output_names) == 1:
-                # some exported model can not get tensor 'bbox_num' 
+                # some exported model can not get tensor 'bbox_num'
                 np_boxes_num = np.array([len(np_boxes)])
             else:
                 boxes_num = self.predictor.get_output_handle(output_names[1])
@@ -185,13 +219,11 @@ class PaddleDetectionDetector(Detector):
             for k, v in res.items():
                 results[k].append(v)
         for k, v in results.items():
-            if k not in ['masks', 'segm']:
+            if k not in ["masks", "segm"]:
                 results[k] = np.concatenate(v)
         return results
 
-    def predict(self,
-                      image_list,
-                      save_results=False):
+    def predict(self, image_list, save_results=False):
         batch_loop_cnt = math.ceil(float(len(image_list)) / self.batch_size)
         results = []
         for i in range(batch_loop_cnt):
@@ -199,7 +231,6 @@ class PaddleDetectionDetector(Detector):
             end_index = min((i + 1) * self.batch_size, len(image_list))
             batch_image_list = image_list[start_index:end_index]
 
-        
             # preprocess
 
             inputs = self.preprocess(batch_image_list)
@@ -211,17 +242,16 @@ class PaddleDetectionDetector(Detector):
             result = self.postprocess(inputs, result)
 
             # apply non-maximum suppression
-            
-            #result_boxes = nms(result["boxes"])
-            
-            #result["boxes"] = result_boxes
+
+            # result_boxes = nms(result["boxes"])
+
+            # result["boxes"] = result_boxes
             result = self.filter_box(result, self.threshold)
             results.append(result)
         results = self.merge_batch_result(results)
         if save_results:
             Path(self.output_dir).mkdir(exist_ok=True)
-            self.save_coco_results(
-                image_list, results, use_coco_category=self.use_coco_category)
+            self.save_coco_results(image_list, results, use_coco_category=self.use_coco_category)
         return self.to_boundingboxes(results)
 
     def save_coco_results(self, image_list, results, use_coco_category=False):
@@ -229,55 +259,59 @@ class PaddleDetectionDetector(Detector):
         mask_results = []
         idx = 0
         print("Start saving coco json files...")
-        for i, box_num in enumerate(results['boxes_num']):
+        for i, box_num in enumerate(results["boxes_num"]):
             file_name = os.path.split(image_list[i])[-1]
             if use_coco_category:
                 img_id = int(os.path.splitext(file_name)[0])
             else:
                 img_id = i
 
-            if 'boxes' in results:
-                boxes = results['boxes'][idx:idx + box_num].tolist()
-                bbox_results.extend([{
-                    'image_id': img_id,
-                    'category_id': coco_clsid2catid[int(box[0])] \
-                        if use_coco_category else int(box[0]),
-                    'file_name': file_name,
-                    'bbox': [box[2], box[3], box[4] - box[2],
-                         box[5] - box[3]],  # xyxy -> xywh
-                    'score': box[1]} for box in boxes])
+            if "boxes" in results:
+                boxes = results["boxes"][idx : idx + box_num].tolist()
+                bbox_results.extend(
+                    [
+                        {
+                            "image_id": img_id,
+                            "category_id": coco_clsid2catid[int(box[0])] if use_coco_category else int(box[0]),
+                            "file_name": file_name,
+                            "bbox": [box[2], box[3], box[4] - box[2], box[5] - box[3]],  # xyxy -> xywh
+                            "score": box[1],
+                        }
+                        for box in boxes
+                    ]
+                )
 
-            if 'masks' in results:
+            if "masks" in results:
                 import pycocotools.mask as mask_util
 
-                boxes = results['boxes'][idx:idx + box_num].tolist()
-                masks = results['masks'][i][:box_num].astype(np.uint8)
+                boxes = results["boxes"][idx : idx + box_num].tolist()
+                masks = results["masks"][i][:box_num].astype(np.uint8)
                 seg_res = []
                 for box, mask in zip(boxes, masks):
-                    rle = mask_util.encode(
-                        np.array(
-                            mask[:, :, None], dtype=np.uint8, order="F"))[0]
-                    if 'counts' in rle:
-                        rle['counts'] = rle['counts'].decode("utf8")
-                    seg_res.append({
-                        'image_id': img_id,
-                        'category_id': coco_clsid2catid[int(box[0])] \
-                        if use_coco_category else int(box[0]),
-                        'file_name': file_name,
-                        'segmentation': rle,
-                        'score': box[1]})
+                    rle = mask_util.encode(np.array(mask[:, :, None], dtype=np.uint8, order="F"))[0]
+                    if "counts" in rle:
+                        rle["counts"] = rle["counts"].decode("utf8")
+                    seg_res.append(
+                        {
+                            "image_id": img_id,
+                            "category_id": coco_clsid2catid[int(box[0])] if use_coco_category else int(box[0]),
+                            "file_name": file_name,
+                            "segmentation": rle,
+                            "score": box[1],
+                        }
+                    )
                 mask_results.extend(seg_res)
 
             idx += box_num
 
         if bbox_results:
             bbox_file = os.path.join(self.output_dir, "bbox.json")
-            with open(bbox_file, 'w') as f:
+            with open(bbox_file, "w") as f:
                 json.dump(bbox_results, f)
             print(f"The bbox result is saved to {bbox_file}")
         if mask_results:
             mask_file = os.path.join(self.output_dir, "mask.json")
-            with open(mask_file, 'w') as f:
+            with open(mask_file, "w") as f:
                 json.dump(mask_results, f)
             print(f"The mask result is saved to {mask_file}")
 
@@ -286,6 +320,7 @@ class PaddleDetectionDetector(Detector):
         for box in results["boxes"]:
             boundingboxes.append((BoundingBox(box[2], box[3], box[4], box[5]), str(box[0])))
         return boundingboxes
+
 
 def create_inputs(imgs, im_info):
     """generate input for different model type
@@ -300,19 +335,17 @@ def create_inputs(imgs, im_info):
     im_shape = []
     scale_factor = []
     if len(imgs) == 1:
-        inputs['image'] = np.array((imgs[0], )).astype('float32')
-        inputs['im_shape'] = np.array(
-            (im_info[0]['im_shape'], )).astype('float32')
-        inputs['scale_factor'] = np.array(
-            (im_info[0]['scale_factor'], )).astype('float32')
+        inputs["image"] = np.array((imgs[0],)).astype("float32")
+        inputs["im_shape"] = np.array((im_info[0]["im_shape"],)).astype("float32")
+        inputs["scale_factor"] = np.array((im_info[0]["scale_factor"],)).astype("float32")
         return inputs
 
     for e in im_info:
-        im_shape.append(np.array((e['im_shape'], )).astype('float32'))
-        scale_factor.append(np.array((e['scale_factor'], )).astype('float32'))
+        im_shape.append(np.array((e["im_shape"],)).astype("float32"))
+        scale_factor.append(np.array((e["scale_factor"],)).astype("float32"))
 
-    inputs['im_shape'] = np.concatenate(im_shape, axis=0)
-    inputs['scale_factor'] = np.concatenate(scale_factor, axis=0)
+    inputs["im_shape"] = np.concatenate(im_shape, axis=0)
+    inputs["scale_factor"] = np.concatenate(scale_factor, axis=0)
 
     imgs_shape = [[e.shape[1], e.shape[2]] for e in imgs]
     max_shape_h = max([e[0] for e in imgs_shape])
@@ -320,15 +353,14 @@ def create_inputs(imgs, im_info):
     padding_imgs = []
     for img in imgs:
         im_c, im_h, im_w = img.shape[:]
-        padding_im = np.zeros(
-            (im_c, max_shape_h, max_shape_w), dtype=np.float32)
+        padding_im = np.zeros((im_c, max_shape_h, max_shape_w), dtype=np.float32)
         padding_im[:, :im_h, :im_w] = img
         padding_imgs.append(padding_im)
-    inputs['image'] = np.stack(padding_imgs, axis=0)
+    inputs["image"] = np.stack(padding_imgs, axis=0)
     return inputs
 
 
-class PredictConfig():
+class PredictConfig:
     """set config of preprocess, postprocess and visualize
     Args:
         model_dir (str): root path of model.yml
@@ -336,58 +368,58 @@ class PredictConfig():
 
     def __init__(self, model_dir):
         # parsing Yaml config for Preprocess
-        deploy_file = os.path.join(model_dir, 'infer_cfg.yml')
+        deploy_file = os.path.join(model_dir, "infer_cfg.yml")
         with open(deploy_file) as f:
             yml_conf = yaml.safe_load(f)
         self.check_model(yml_conf)
-        self.arch = yml_conf['arch']
-        self.preprocess_infos = yml_conf['Preprocess']
-        self.min_subgraph_size = yml_conf['min_subgraph_size']
-        self.labels = yml_conf['label_list']
+        self.arch = yml_conf["arch"]
+        self.preprocess_infos = yml_conf["Preprocess"]
+        self.min_subgraph_size = yml_conf["min_subgraph_size"]
+        self.labels = yml_conf["label_list"]
         self.mask = False
-        self.use_dynamic_shape = yml_conf['use_dynamic_shape']
-        if 'mask' in yml_conf:
-            self.mask = yml_conf['mask']
+        self.use_dynamic_shape = yml_conf["use_dynamic_shape"]
+        if "mask" in yml_conf:
+            self.mask = yml_conf["mask"]
         self.tracker = None
-        if 'tracker' in yml_conf:
-            self.tracker = yml_conf['tracker']
-        if 'NMS' in yml_conf:
-            self.nms = yml_conf['NMS']
-        if 'fpn_stride' in yml_conf:
-            self.fpn_stride = yml_conf['fpn_stride']
-        if self.arch == 'RCNN' and yml_conf.get('export_onnx', False):
-            print(
-                'The RCNN export model is used for ONNX and it only supports batch_size = 1'
-            )
+        if "tracker" in yml_conf:
+            self.tracker = yml_conf["tracker"]
+        if "NMS" in yml_conf:
+            self.nms = yml_conf["NMS"]
+        if "fpn_stride" in yml_conf:
+            self.fpn_stride = yml_conf["fpn_stride"]
+        if self.arch == "RCNN" and yml_conf.get("export_onnx", False):
+            print("The RCNN export model is used for ONNX and it only supports batch_size = 1")
 
     def check_model(self, yml_conf):
         """
         Raises:
-            ValueError: loaded model not in supported model type 
+            ValueError: loaded model not in supported model type
         """
         for support_model in SUPPORT_MODELS:
-            if support_model in yml_conf['arch']:
+            if support_model in yml_conf["arch"]:
                 return True
-        raise ValueError("Unsupported arch: {}, expect {}".format(yml_conf[
-            'arch'], SUPPORT_MODELS))
+        raise ValueError("Unsupported arch: {}, expect {}".format(yml_conf["arch"], SUPPORT_MODELS))
 
-def load_predictor(model_dir,
-                   arch,
-                   run_mode='paddle',
-                   batch_size=1,
-                   device='CPU',
-                   min_subgraph_size=3,
-                   use_dynamic_shape=False,
-                   trt_min_shape=1,
-                   trt_max_shape=1280,
-                   trt_opt_shape=640,
-                   trt_calib_mode=False,
-                   cpu_threads=1,
-                   enable_mkldnn=False,
-                   enable_mkldnn_bfloat16=False,
-                   delete_shuffle_pass=False,
-                   collect_trt_shape_info=False,
-                   tuned_trt_shape_file=None):
+
+def load_predictor(
+    model_dir,
+    arch,
+    run_mode="paddle",
+    batch_size=1,
+    device="CPU",
+    min_subgraph_size=3,
+    use_dynamic_shape=False,
+    trt_min_shape=1,
+    trt_max_shape=1280,
+    trt_opt_shape=640,
+    trt_calib_mode=False,
+    cpu_threads=1,
+    enable_mkldnn=False,
+    enable_mkldnn_bfloat16=False,
+    delete_shuffle_pass=False,
+    collect_trt_shape_info=False,
+    tuned_trt_shape_file=None,
+):
     """set AnalysisConfig, generate AnalysisPredictor
     Args:
         model_dir (str): root path of __model__ and __params__
@@ -399,36 +431,35 @@ def load_predictor(model_dir,
         trt_opt_shape (int): opt shape for dynamic shape in trt
         trt_calib_mode (bool): If the model is produced by TRT offline quantitative
             calibration, trt_calib_mode need to set True
-        delete_shuffle_pass (bool): whether to remove shuffle_channel_detect_pass in TensorRT. 
+        delete_shuffle_pass (bool): whether to remove shuffle_channel_detect_pass in TensorRT.
                                     Used by action model.
     Returns:
         predictor (PaddlePredictor): AnalysisPredictor
     Raises:
         ValueError: predict by TensorRT need device == 'GPU'.
     """
-    if device != 'GPU' and run_mode != 'paddle':
+    if device != "GPU" and run_mode != "paddle":
         raise ValueError(
-            "Predict by TensorRT mode: {}, expect device=='GPU', but device == {}"
-            .format(run_mode, device))
-    infer_model = os.path.join(model_dir, 'model.pdmodel')
-    infer_params = os.path.join(model_dir, 'model.pdiparams')
+            "Predict by TensorRT mode: {}, expect device=='GPU', but device == {}".format(run_mode, device)
+        )
+    infer_model = os.path.join(model_dir, "model.pdmodel")
+    infer_params = os.path.join(model_dir, "model.pdiparams")
     if not os.path.exists(infer_model):
-        infer_model = os.path.join(model_dir, 'inference.pdmodel')
-        infer_params = os.path.join(model_dir, 'inference.pdiparams')
+        infer_model = os.path.join(model_dir, "inference.pdmodel")
+        infer_params = os.path.join(model_dir, "inference.pdiparams")
         if not os.path.exists(infer_model):
-            raise ValueError(
-                "Cannot find any inference model in dir: {},".format(model_dir))
+            raise ValueError("Cannot find any inference model in dir: {},".format(model_dir))
     config = Config(infer_model, infer_params)
-    if device == 'GPU':
+    if device == "GPU":
         # initial GPU memory(M), device ID
         config.enable_use_gpu(200, 0)
         # optimize graph and fuse op
         config.switch_ir_optim(True)
-    elif device == 'XPU':
+    elif device == "XPU":
         if config.lite_engine_enabled():
             config.enable_lite_engine()
         config.enable_xpu(10 * 1024 * 1024)
-    elif device == 'NPU':
+    elif device == "NPU":
         if config.lite_engine_enabled():
             config.enable_lite_engine()
         config.enable_npu()
@@ -443,15 +474,13 @@ def load_predictor(model_dir,
                 if enable_mkldnn_bfloat16:
                     config.enable_mkldnn_bfloat16()
             except Exception as e:
-                print(
-                    "The current environment does not support `mkldnn`, so disable mkldnn."
-                )
+                print("The current environment does not support `mkldnn`, so disable mkldnn.")
                 pass
 
     precision_map = {
-        'trt_int8': Config.Precision.Int8,
-        'trt_fp32': Config.Precision.Float32,
-        'trt_fp16': Config.Precision.Half
+        "trt_int8": Config.Precision.Int8,
+        "trt_fp32": Config.Precision.Float32,
+        "trt_fp16": Config.Precision.Half,
     }
     if run_mode in precision_map.keys():
         config.enable_tensorrt_engine(
@@ -460,31 +489,20 @@ def load_predictor(model_dir,
             min_subgraph_size=min_subgraph_size,
             precision_mode=precision_map[run_mode],
             use_static=False,
-            use_calib_mode=trt_calib_mode)
+            use_calib_mode=trt_calib_mode,
+        )
         if collect_trt_shape_info:
             config.collect_shape_range_info(tuned_trt_shape_file)
         elif os.path.exists(tuned_trt_shape_file):
-            print(f'Use dynamic shape file: '
-                  f'{tuned_trt_shape_file} for TRT...')
-            config.enable_tuned_tensorrt_dynamic_shape(
-                tuned_trt_shape_file, True)
+            print(f"Use dynamic shape file: " f"{tuned_trt_shape_file} for TRT...")
+            config.enable_tuned_tensorrt_dynamic_shape(tuned_trt_shape_file, True)
 
         if use_dynamic_shape:
-            min_input_shape = {
-                'image': [batch_size, 3, trt_min_shape, trt_min_shape],
-                'scale_factor': [batch_size, 2]
-            }
-            max_input_shape = {
-                'image': [batch_size, 3, trt_max_shape, trt_max_shape],
-                'scale_factor': [batch_size, 2]
-            }
-            opt_input_shape = {
-                'image': [batch_size, 3, trt_opt_shape, trt_opt_shape],
-                'scale_factor': [batch_size, 2]
-            }
-            config.set_trt_dynamic_shape_info(min_input_shape, max_input_shape,
-                                              opt_input_shape)
-            print('trt set dynamic shape done!')
+            min_input_shape = {"image": [batch_size, 3, trt_min_shape, trt_min_shape], "scale_factor": [batch_size, 2]}
+            max_input_shape = {"image": [batch_size, 3, trt_max_shape, trt_max_shape], "scale_factor": [batch_size, 2]}
+            opt_input_shape = {"image": [batch_size, 3, trt_opt_shape, trt_opt_shape], "scale_factor": [batch_size, 2]}
+            config.set_trt_dynamic_shape_info(min_input_shape, max_input_shape, opt_input_shape)
+            print("trt set dynamic shape done!")
 
     # disable print log when predict
     config.disable_glog_info()

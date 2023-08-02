@@ -13,23 +13,26 @@ import logging
 
 from flower_state_classification.util.timer import Timer
 
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
 
 class FrameProcessor:
     classifier: Classifier = None
     detector: Detector = None
     classified_plants_new: List[Plant] = None
     last_frame: np.ndarray = None
-    
+
     def __init__(self, run_settings: Settings):
         self.debug_settings = run_settings
         self.classifier = run_settings.classifier
         self.detector = run_settings.detector
 
         if self.debug_settings.write_video:
-            #TODO use max frame size instead of 640x480
-            self.video_writer = cv2.VideoWriter(f"{self.debug_settings.output_folder}/output.avi", cv2.VideoWriter_fourcc(*'MJPG'), 30, (640, 480))
-        
+            # TODO use max frame size instead of 640x480
+            self.video_writer = cv2.VideoWriter(
+                f"{self.debug_settings.output_folder}/output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 30, (640, 480)
+            )
+
         self.image_output_folder = self.debug_settings.frame_output_folder
         self.classified_plants_new = []
         self.frames_without_plants = []
@@ -40,11 +43,11 @@ class FrameProcessor:
         notifier.notify(message)
 
     def is_same_plant(self, plant: Plant, frame_nr: int, label: str, bbox):
-        if frame_nr-1 not in plant.frame_to_bounding_box:
+        if frame_nr - 1 not in plant.frame_to_bounding_box:
             return str(label) == str(plant.id)
-        
-        return str(label) == str(plant.id) or plant.frame_to_bounding_box[frame_nr-1].overlaps(bbox)
-    
+
+        return str(label) == str(plant.id) or plant.frame_to_bounding_box[frame_nr - 1].overlaps(bbox)
+
     def process_frame(self, frame: np.array, frame_nr: int):
         detected_plants = None
         if self.detector:
@@ -58,7 +61,9 @@ class FrameProcessor:
             for bbox, label in detected_plants:
                 plant_frame = frame.copy()
                 plant_frame = bbox.cut_frame(plant_frame)
-                logger.debug(f"Object detector detected label: {label} at location: {bbox} with confidence: {bbox.score}")
+                logger.debug(
+                    f"Object detector detected label: {label} at location: {bbox} with confidence: {bbox.score}"
+                )
 
                 # Get Optical Flow tracker
                 is_new_plant = True
@@ -66,19 +71,24 @@ class FrameProcessor:
 
                 if self.classified_plants_new:
                     for plant in self.classified_plants_new:
-                        if self.is_same_plant(plant,frame_nr,label, bbox):
+                        if self.is_same_plant(plant, frame_nr, label, bbox):
                             plant.frame_to_bounding_box[frame_nr] = bbox
                             current_plant = plant
                             is_new_plant = False
                             break
 
                 if is_new_plant:
-                    optical_flow_calculator = SparseOpticalFlowCalculator(self.debug_settings, label) # if self.debug_settings.camera_mode # is CameraMode.MOVING else self.optical_flow_calculator
+                    optical_flow_calculator = SparseOpticalFlowCalculator(
+                        self.debug_settings, label
+                    )  # if self.debug_settings.camera_mode # is CameraMode.MOVING else self.optical_flow_calculator
                     current_plant = Plant(label, {}, True, None, None, optical_flow_calculator)
                     current_plant.frame_to_bounding_box[frame_nr] = bbox
                     self.classified_plants_new.append(current_plant)
                     if self.debug_settings.write_plant_images:
-                        cv2.imwrite(self.debug_settings.plant_output_folder + f"/{label}_frame-{frame_nr}.jpg", cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
+                        cv2.imwrite(
+                            self.debug_settings.plant_output_folder + f"/{label}_frame-{frame_nr}.jpg",
+                            cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR),
+                        )
 
                 # Calculate Optical Flow
                 with Timer("Optical Flow"):
@@ -93,11 +103,12 @@ class FrameProcessor:
                                 current_plant.is_healthy = False
                                 current_plant.unhealthy_frames.append(frame_nr)
                                 self.send_notification(current_plant)
-                                if self.debug_settings.write_plant_images and current_plant.unhealthy_frames[0] == frame_nr:
+                                if (
+                                    self.debug_settings.write_plant_images
+                                    and current_plant.unhealthy_frames[0] == frame_nr
+                                ):
                                     filename = f"{self.debug_settings.plant_output_folder}/{label}_frame-{frame_nr}_needswater.jpg"
                                     cv2.imwrite(filename, cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
-
-
 
                 with Timer("Classification", logger.debug):
                     classifier_label = self.classifier.predict(plant_frame) if self.classifier else "No classifier"
@@ -105,7 +116,15 @@ class FrameProcessor:
                     logger.debug(f"Classifier detected label: {classifier_label}")
 
                 if self.debug_settings.show_plant_frames:
-                    cv2.putText(plant_frame, f"{label}, {classifier_label}, {bbox.score}", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                    cv2.putText(
+                        plant_frame,
+                        f"{label}, {classifier_label}, {bbox.score}",
+                        (10, 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        (0, 0, 255),
+                        2,
+                    )
                     cv2.imshow(f"plant_frame {label}", cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
                     cv2.waitKey(1)
 
@@ -117,7 +136,7 @@ class FrameProcessor:
 
                 if self.debug_settings.plot_optical_flow and optical_flow is not None:
                     if frame_nr % 10 == 0:
-                        current_plant.optical_flow_calculator.plot(id = current_plant.id, save = True)
+                        current_plant.optical_flow_calculator.plot(id=current_plant.id, save=True)
 
         else:
             logger.debug(f"Object detector did not detect any plants in frame {frame_nr}")
@@ -127,23 +146,25 @@ class FrameProcessor:
         if self.debug_settings.show_bboxes:
             for plant in self.classified_plants_new:
                 if frame_nr in plant.frame_to_bounding_box:
-                    box_label(output_frame, plant.frame_to_bounding_box[frame_nr], f"{plant.id}, {plant.classifier_label}")
+                    box_label(
+                        output_frame, plant.frame_to_bounding_box[frame_nr], f"{plant.id}, {plant.classifier_label}"
+                    )
         else:
             logger.debug(f"No bounding boxes to show in frame {frame_nr}")
 
-        output_frame = cv2.putText(output_frame, f"Frame {frame_nr}", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        output_frame = cv2.putText(
+            output_frame, f"Frame {frame_nr}", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2
+        )
         # Displaying the image if the debug setting is set
         if self.debug_settings.show_frame:
             cv2.imshow("frame", cv2.cvtColor(output_frame, cv2.COLOR_RGB2BGR))
             cv2.waitKey(1)
-        
 
         if self.debug_settings.write_video:
             self.video_writer.write(cv2.cvtColor(output_frame, cv2.COLOR_RGB2BGR))
-        
+
         if self.debug_settings.write_frames:
             output_filename = os.path.join(self.image_output_folder, f"frame_{frame_nr}.jpg")
             cv2.imwrite(output_filename, cv2.cvtColor(output_frame, cv2.COLOR_RGB2BGR))
-        
-        self.last_frame = frame
 
+        self.last_frame = frame

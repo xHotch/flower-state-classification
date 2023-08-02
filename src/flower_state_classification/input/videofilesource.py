@@ -18,7 +18,7 @@ class VideoFileSource(Source):
         # Skip frames if max_frames is set
         if self.max_frames:
             self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, self.frame_number * self.step_size)
-            
+
         ret, image = self.video_capture.read()
         if ret and len(image.shape) > 2:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -33,6 +33,6 @@ class VideoFileSource(Source):
         if self.max_frames:
             return self.max_frames if self.max_frames < video_frames else video_frames
         return video_frames
-    
+
     def __str__(self) -> str:
         return super().__str__() + f" {self.path}"

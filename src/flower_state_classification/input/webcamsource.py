@@ -6,7 +6,6 @@ import cv2
 
 
 class WebcamSource(Source):
-
     # create a opencv video capture object
     def __init__(self) -> None:
         self.video_capture = cv2.VideoCapture(0)
@@ -18,6 +17,6 @@ class WebcamSource(Source):
         if len(image.shape) > 2:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return ret, image
-    
+
     def get_framecount(self):
         return self.framecount

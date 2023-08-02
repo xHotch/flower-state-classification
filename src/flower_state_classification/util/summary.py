@@ -4,7 +4,6 @@ import os
 from flower_state_classification.util.timer import Timer
 
 
-
 def create_summary(pipeline):
     source = pipeline.source
     frame_processor = pipeline.frame_processor
@@ -13,7 +12,7 @@ def create_summary(pipeline):
     output_folder = debug_settings.output_folder
     detection_time = Timer.get_average_time("Detection") if Timer.has_timer("Detection") else "N/A"
     classification_time = Timer.get_average_time("Classification") if Timer.has_timer("Classification") else "N/A"
-    #create summary file
+    # create summary file
     summary_json = os.path.join(output_folder, "summary.json")
     summary_dict = {
         "source": str(source),

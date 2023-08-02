@@ -3,7 +3,8 @@ import websockets
 import logging
 
 
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
 
 class WebsocketServer:
     def __init__(self, websocket_host, websocket_port) -> None:
@@ -14,7 +15,7 @@ class WebsocketServer:
         try:
             async for message in websocket:
                 logger.info(f"Received message: {message}")
-                #await websocket.send(message)
+                # await websocket.send(message)
         except websockets.exceptions.ConnectionClosedError:
             logger.info("Connection closed")
 

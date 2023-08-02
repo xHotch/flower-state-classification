@@ -5,8 +5,10 @@ from contextlib import ContextDecorator
 from dataclasses import dataclass, field
 from typing import Any, Callable, ClassVar, Dict, List, Optional
 
+
 class TimerError(Exception):
     """A custom exception used to report errors in use of Timer class"""
+
 
 @dataclass
 class Timer(ContextDecorator):
@@ -63,21 +65,21 @@ class Timer(ContextDecorator):
         if timer_name not in cls.timers:
             raise TimerError(f"Timer {timer_name} does not exist")
         return sum(cls.timers[timer_name])
-    
+
     @classmethod
     def get_number_of_executions(cls, timer_name) -> int:
         """Get the number of executions of a timer"""
         if timer_name not in cls.timers:
             raise TimerError(f"Timer {timer_name} does not exist")
         return len(cls.timers[timer_name])
-    
+
     @classmethod
     def get_average_time(cls, timer_name) -> float:
         """Get the average time of a timer"""
         if timer_name not in cls.timers:
             raise TimerError(f"Timer {timer_name} does not exist")
         return cls.get_total_time(timer_name) / cls.get_number_of_executions(timer_name)
-    
+
     @classmethod
     def has_timer(cls, timer_name) -> bool:
         """Check if a timer exists"""
@@ -87,4 +89,6 @@ class Timer(ContextDecorator):
     def print_summary(cls, logging_function: Callable = print) -> None:
         for timer_name, values in cls.timers.items():
             if values:
-                logging_function(f"Total/Average time for {timer_name}: {cls.get_total_time(timer_name):.3f}s/{cls.get_average_time(timer_name):.3f}s . ({cls.get_number_of_executions(timer_name)} executions)")
+                logging_function(
+                    f"Total/Average time for {timer_name}: {cls.get_total_time(timer_name):.3f}s/{cls.get_average_time(timer_name):.3f}s . ({cls.get_number_of_executions(timer_name)} executions)"
+                )

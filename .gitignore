@@ -192,3 +192,8 @@ src/flower_state_classification/cv/training/yolov8/coco_val/labels/val/*.txt
 # Pytorch Models
 # *.pt # Added to git lfs instead
 *.tar
+
+# Checkpoints for paddledetection
+*.pdopt
+*.pdparams
+*.pdema

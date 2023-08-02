@@ -1,6 +1,7 @@
 import cv2
 import os
 
+
 def reverse_video(input_file, output_file):
     # Open the video file
     video = cv2.VideoCapture(input_file)
@@ -11,7 +12,7 @@ def reverse_video(input_file, output_file):
     frame_height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     # Create a VideoWriter object to save the reversed video
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(output_file, fourcc, fps, (frame_width, frame_height))
 
     # Read frames and write them in reverse order
@@ -68,9 +69,6 @@ def export_frames(input_file, output_folder, num_frames):
     print(f"{count} frames exported to {output_folder}")
 
 
-
-
-
 if __name__ == "__main__":
     num_frames_to_export = 100
 
@@ -79,4 +77,4 @@ if __name__ == "__main__":
         if file.endswith(".mp4"):
             input_file_path = os.path.join(folder, file)
             export_folder_path = os.path.join(folder, f"exported_{file}")
-            export_frames(input_file_path, export_folder_path, num_frames_to_export)            
+            export_frames(input_file_path, export_folder_path, num_frames_to_export)
