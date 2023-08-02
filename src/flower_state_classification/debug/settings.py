@@ -42,9 +42,6 @@ class Settings:
     daily_end_time = "18:00"
     every_x_minutes = 30
 
-    ## Telegram Notification Settings
-    telegram_token = ""  # Read from file or environment variable
-    telegram_chat_id = ""  # Read from file or environment variable
     # Websocket Notification Settings
     websocket_host = "localhost"
     websocket_port = 8765
