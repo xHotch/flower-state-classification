@@ -48,7 +48,7 @@ class ScheduledWebcamsource(Source):
         self.last_frame_time = datetime.datetime.now()
         self.framecount += 1
         ret, image = self.video_capture.read()
-        if len(image.shape) > 2:
+        if ret and len(image.shape) > 2:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return ret, image
 
