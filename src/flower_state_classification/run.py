@@ -32,7 +32,7 @@ class FlowerStateClassificationPipeline:
         else:
             self.source = WebcamSource()
         self.run_settings = run_settings
-        self.frame_processor = FrameProcessor(run_settings, source)
+        self.frame_processor = FrameProcessor(run_settings, self.source)
 
     @Timer(name="Total Runtime", logger=logger.info)
     def run(self):
@@ -43,6 +43,7 @@ class FlowerStateClassificationPipeline:
                 break
             self.frame_number += 1
         logger.info(f"Pipeline finished on {self.source}")
+        cv2.destroyAllWindows()
 
     @Timer("Run Loop", logger=logger.debug)
     def run_loop(self):

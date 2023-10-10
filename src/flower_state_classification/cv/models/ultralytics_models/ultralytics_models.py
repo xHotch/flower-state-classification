@@ -22,7 +22,7 @@ class UltralyticsDetector(Detector):
     def predict(self, frames: List[np.array]) -> List[Tuple[BoundingBox, str]]:
         for frame in frames:
             persist = not self.reset_tracker
-            result = self.model.track(source=frames, conf=self.threshold, persist=persist, verbose=False)
+            result = self.model.track(source=frames, conf=self.threshold, persist=persist, verbose=False, tracker="botsort.yaml")
             self.reset_tracker = False
             names = result[0].names
             boxes = result[0].boxes.cpu().numpy()

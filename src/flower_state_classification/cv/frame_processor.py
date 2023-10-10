@@ -16,7 +16,6 @@ from flower_state_classification.util.timer import Timer
 
 logger = logging.getLogger(__name__)
 
-
 class FrameProcessor:
     classifier: Classifier = None
     detector: Detector = None
@@ -46,8 +45,11 @@ class FrameProcessor:
     def is_same_plant(self, plant: Plant, frame_nr: int, label: str, bbox):
         if frame_nr - 1 not in plant.frame_to_bounding_box:
             return str(label) == str(plant.id)
-
-        return str(label) == str(plant.id) or plant.frame_to_bounding_box[frame_nr - 1].overlaps(bbox)
+        
+        if not plant.frame_to_bounding_box[frame_nr - 1].overlaps(bbox) and str(label) == str(plant.id):
+            logger.warning("Wrong track detected for plant {}".format(label))
+                
+        return str(label) == str(plant.id) and plant.frame_to_bounding_box[frame_nr - 1].overlaps(bbox)
 
     def process_frame(self, frame: np.array, frame_nr: int):
         detected_plants = None
@@ -69,16 +71,27 @@ class FrameProcessor:
                 # Get Optical Flow tracker
                 is_new_plant = True
                 current_plant = None
-
+                if label == "-1":
+                    logger.debug("Detected plant with label -1 (no track)")
                 if self.classified_plants_new:
                     for plant in self.classified_plants_new:
-                        if self.is_same_plant(plant, frame_nr, label, bbox):
+                        same_plant = self.is_same_plant(plant, frame_nr, label, bbox)
+                        if same_plant:
                             plant.frame_to_bounding_box[frame_nr] = bbox
                             current_plant = plant
                             is_new_plant = False
                             break
 
+
                 if is_new_plant:
+                    plant_labels = [plant.id for plant in self.classified_plants_new]
+                    
+                    if label in plant_labels:
+                        logger.warning(f"Plant with label {label} already exists, creating new label")
+                        # inrease label by 1
+                        label = max(plant_labels) + 1
+                        
+
                     optical_flow_calculator = SparseOpticalFlowCalculator(
                         self.debug_settings, label
                     )  # if self.debug_settings.camera_mode # is CameraMode.MOVING else self.optical_flow_calculator
@@ -108,7 +121,7 @@ class FrameProcessor:
                                     self.debug_settings.write_plant_images
                                     and current_plant.unhealthy_frames[0] == frame_nr
                                 ):
-                                    filename = f"{self.debug_settings.plant_output_folder}/{label}_frame-{frame_nr}_needswater.jpg"
+                                    filename = f"{self.debug_settings.plant_output_folder}/{current_plant.id}_frame-{frame_nr}_needswater.jpg"
                                     cv2.imwrite(filename, cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
 
                 with Timer("Classification", logger.debug):
@@ -119,14 +132,14 @@ class FrameProcessor:
                 if self.debug_settings.show_plant_frames:
                     cv2.putText(
                         plant_frame,
-                        f"{label}, {classifier_label}, {bbox.score}",
+                        f"{current_plant.id}, {classifier_label}, {bbox.score}",
                         (10, 10),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.5,
                         (0, 0, 255),
                         2,
                     )
-                    cv2.imshow(f"plant_frame {label}", cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
+                    cv2.imshow(f"plant_frame {current_plant.id}", cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
                     cv2.waitKey(1)
 
                 if self.debug_settings.show_optical_flow and optical_flow is not None:

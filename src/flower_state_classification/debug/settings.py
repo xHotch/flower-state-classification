@@ -25,8 +25,8 @@ class CameraMode(Enum):
 class Settings:
     # Classification Settings
 
-    minimum_angle = 70  # Downwards angle is at 90 degrees
-    maximum_angle = 110
+    minimum_angle = 60  # Downwards angle is at 90 degrees
+    maximum_angle = 120
 
     magnitude_threshold = 20  # Absolute size in pixel
     magnitude_threshold_scaled = 0.05  # Percentage of the plant height
@@ -50,17 +50,18 @@ class Settings:
     server = WebsocketServer(websocket_host, websocket_port)
 
     # Debug Output Settings
-    show_frame = False
-    show_bboxes = False
-    write_video = False
+    show_frame = True
+    show_bboxes = True
+    write_video = True
     write_frames = True
     write_plant_images = True
-    show_plant_frames = False
+    show_plant_frames = True
 
     ## Optical Flow Debug Settings
-    show_optical_flow = False
+    show_optical_flow = True
     show_green_mask = False
     plot_optical_flow = True
+
 
     output_folder = r"./output"
 

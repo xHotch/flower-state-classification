@@ -113,33 +113,44 @@ class OpticalFlowCalculator(ABC):
 
         # axs_mag.xlabel("Frame number [int]")
         # axs.ylabel("Angle [degrees]")
-        self.axs.plot(average_angle)
+        plot_angle = self.axs.plot(average_angle)
 
         # axs_mag.ylabel("Magnitude [px]")
-        self.axs_mag.plot(average_magnitude)
+        plot_magnitude = self.axs_mag.plot(average_magnitude)
+
+        return plot_angle, plot_magnitude
 
     def plot(self, id: str = None, save=False):
+        if self.flow_angles is None or len(self.flow_angles) < 1:
+            logger.warning("No optical flow to plot")
+            return
+        
         self.fig, (self.axs, self.axs_mag) = plt.subplots(2, sharex=True)
         self.fig.suptitle("Optical flow over time")
-
-        self._plot_angle_and_magnitude(self.flow_angles, self.flow_magnitudes)
-        self._plot_angle_and_magnitude(self.total_angles, self.total_magnitudes)
+        self.axs.set_title("Angle")
+        self.axs.set_ylabel("Angle [degrees]")
+        self.axs_mag.set_title("Magnitude")
+        self.axs_mag.set_ylabel("Magnitude [px]")
+        self.axs_mag.set_xlabel("Frame number [scalar]")
+        plot_flow_angle, plot_flow_magnitude = self._plot_angle_and_magnitude(self.flow_angles, self.flow_magnitudes)
+        plot_total_angle, plot_total_magnitude = self._plot_angle_and_magnitude(self.total_angles, self.total_magnitudes)
 
         minimum_angle = self.debug_settings.minimum_angle
         maximum_angle = self.debug_settings.maximum_angle
 
-        self.axs.axhline(y=minimum_angle, color="g", linestyle="--", label="Minimum angle", linewidth=0.5)
-        self.axs.axhline(y=maximum_angle, color="g", linestyle="--", label="Maximum angle", linewidth=0.5)
+        line_min_angle = self.axs.axhline(y=minimum_angle, color="g", linestyle="dotted", label="Minimum angle", linewidth=0.5)
+        line_max_angle = self.axs.axhline(y=maximum_angle, color="r", linestyle="dotted", label="Maximum angle", linewidth=0.5)
 
-        self.axs_mag.axhline(
+        line_mag = self.axs_mag.axhline(
             y=self.debug_settings.magnitude_threshold,
             color="g",
             linestyle="--",
             label="Magnitude threshold",
-            linewidth=2,
+            linewidth=0.5,
         )
-        self.axs_mag.axhline(y=self.scaled_threshold, color="r", linestyle="--", label="Scaled threshold", linewidth=2)
+        line_mag_scaled = self.axs_mag.axhline(y=self.scaled_threshold, color="r", linestyle="--", label="Scaled threshold", linewidth=0.5)
 
+        area_needs_water = None
         start_idx = None
         for index, status in self.status:
             if status == "needs_watering" and start_idx is None:
@@ -147,7 +158,7 @@ class OpticalFlowCalculator(ABC):
             elif not status == "needs_watering" and start_idx is not None:
                 end_idx = index
 
-                self.axs.axvspan(start_idx, end_idx, alpha=0.2, color="blue")
+                area_needs_water = self.axs.axvspan(start_idx, end_idx, alpha=0.2, color="blue", label="Needs watering")
                 self.axs_mag.axvspan(start_idx, end_idx, alpha=0.2, color="blue")
 
                 # self.axs.fill_between(x_values[start_idx:end_idx], 0, 1, alpha=0.3, color='blue')
@@ -157,17 +168,22 @@ class OpticalFlowCalculator(ABC):
 
         if start_idx is not None and self.status[-1][1] == "needs_watering":
             end_idx = len(self.status)
-            self.axs.axvspan(start_idx, end_idx, alpha=0.2, color="blue")
+            area_needs_water = self.axs.axvspan(start_idx, end_idx, alpha=0.2, color="blue", label="Needs watering")
             self.axs_mag.axvspan(start_idx, end_idx, alpha=0.2, color="blue")
 
-        self.axs.legend(["Average", "Accumulated"])
-        self.axs_mag.legend(["Average", "Accumulated"])
 
+        if area_needs_water is not None:
+            self.fig.legend(handles = [plot_flow_angle[0], plot_total_angle[0], line_min_angle, line_max_angle, line_mag, line_mag_scaled, area_needs_water], labels = ["Average", "Accumulated", "Minimum angle", "Maximum angle", "Magnitude threshold", "Scaled threshold", "Needs watering"], loc="center right", bbox_to_anchor=(1.3, 0.6))
+        else:
+            self.fig.legend(handles = [plot_flow_angle[0], plot_total_angle[0], line_min_angle, line_max_angle, line_mag, line_mag_scaled], labels = ["Average", "Accumulated", "Minimum angle", "Maximum angle", "Magnitude threshold", "Scaled threshold"], loc="center right", bbox_to_anchor=(1.3, 0.6))
+
+        plt.tight_layout()
         if save:
             folder = self.debug_settings.get_output_folder("optical_flow")
-            self.fig.savefig(os.path.join(folder, f"{id}.png"))
+            self.fig.savefig(os.path.join(folder, f"{id}.png"), dpi=500, bbox_inches="tight")
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
+        plt.show()
         plt.close(self.fig)
 
 
@@ -293,7 +309,7 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
         if total_angle > self.debug_settings.minimum_angle and total_angle < self.debug_settings.maximum_angle:
             logger.debug("Optical flow classified as downwards")
 
-            if total_magnitude > self.debug_settings.magnitude_threshold:
+            if total_magnitude > self.scaled_threshold:
                 logger.debug("Optical flow classified as downwards and strong")
 
                 self.status.append((index, "needs_watering"))

@@ -45,7 +45,15 @@
             "program": "${workspaceFolder}/src/flower_state_classification/run.py",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["C:\\dev\\videos\\cut\\20230621_Plant Dying Timelapse.mp4"]
+            "args": ["C:\\dev\\videos\\cut\\vstack.mp4"]
+        },
+        {
+            "name": "Python: Run Websocket",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/flower_state_classification/run_server.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }
