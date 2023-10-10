@@ -1,5 +1,5 @@
 import os
-from flower_state_classification.debug.settings import PipelineMode
+from flower_state_classification.settings.settings import PipelineMode
 from flower_state_classification.input.videofilesource import VideoFileSource
 from flower_state_classification.run import main as run_main
 
@@ -14,7 +14,7 @@ def main():
         for max_frames in max_number_of_frames:
             try:
                 source = VideoFileSource(os.path.join(video_folder, video), max_frames)
-                run_main(source, PipelineMode.CONTINUOUS, video)
+                run_main(source, video)
             except Exception as e:
                 print(f"Error while processing {video}: {e}")
                 print("-----------------------------------")

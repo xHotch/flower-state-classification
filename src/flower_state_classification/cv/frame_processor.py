@@ -1,13 +1,14 @@
+import datetime
 import gc
 import os
 from typing import Dict, List
 import numpy as np
 import cv2
-from flower_state_classification.cv.optical_flow import DenseOpticalFlowCalculator, SparseOpticalFlowCalculator
+from flower_state_classification.cv.optical_flow import SparseOpticalFlowCalculator
 from flower_state_classification.data.plant import Plant
 from flower_state_classification.cv.models.modeltypes import Classifier, Detector
-from flower_state_classification.debug.debugoutput import box_label
-from flower_state_classification.debug.settings import CameraMode, Settings
+from flower_state_classification.settings.debugoutput import box_label
+from flower_state_classification.settings.settings import Settings
 
 import logging
 from flower_state_classification.input.source import Source
@@ -55,7 +56,7 @@ class FrameProcessor:
         detected_plants = None
         if self.detector:
             with Timer("Detection", logger.debug):
-                detected_plants = self.detector.predict([frame])
+                detected_plants = self.detector.predict(frame)
 
         optical_flow = None
 
@@ -89,12 +90,14 @@ class FrameProcessor:
                     if label in plant_labels:
                         logger.warning(f"Plant with label {label} already exists, creating new label")
                         # inrease label by 1
-                        label = max(plant_labels) + 1
+                        if type(label) == str:
+                            label = label + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                        else:
+                            label = max(plant_labels) + 1
                         
-
                     optical_flow_calculator = SparseOpticalFlowCalculator(
                         self.debug_settings, label
-                    )  # if self.debug_settings.camera_mode # is CameraMode.MOVING else self.optical_flow_calculator
+                    )
                     current_plant = Plant(label, {}, True, None, None, optical_flow_calculator)
                     current_plant.frame_to_bounding_box[frame_nr] = bbox
                     self.classified_plants_new.append(current_plant)
@@ -108,21 +111,18 @@ class FrameProcessor:
                 with Timer("Optical Flow"):
                     green_mask = None
                     if self.last_frame is not None:
-                        if self.debug_settings.camera_mode is CameraMode.MOVING:
-                            optical_flow = current_plant.optical_flow_calculator.calculate(plant_frame)
-                        elif self.debug_settings.camera_mode is CameraMode.STATIC:
-                            optical_flow = current_plant.optical_flow_calculator.calculate(frame, bbox)
-                            needs_water = current_plant.optical_flow_calculator.classify(optical_flow)
-                            if needs_water:
-                                current_plant.is_healthy = False
-                                current_plant.unhealthy_frames.append(frame_nr)
-                                self.send_notification(current_plant)
-                                if (
-                                    self.debug_settings.write_plant_images
-                                    and current_plant.unhealthy_frames[0] == frame_nr
-                                ):
-                                    filename = f"{self.debug_settings.plant_output_folder}/{current_plant.id}_frame-{frame_nr}_needswater.jpg"
-                                    cv2.imwrite(filename, cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
+                        optical_flow = current_plant.optical_flow_calculator.calculate(frame, bbox)
+                        needs_water = current_plant.optical_flow_calculator.classify(optical_flow)
+                        if needs_water:
+                            current_plant.is_healthy = False
+                            current_plant.unhealthy_frames.append(frame_nr)
+                            self.send_notification(current_plant)
+                            if (
+                                self.debug_settings.write_plant_images
+                                and current_plant.unhealthy_frames[0] == frame_nr
+                            ):
+                                filename = f"{self.debug_settings.plant_output_folder}/{current_plant.id}_frame-{frame_nr}_needswater.jpg"
+                                cv2.imwrite(filename, cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
 
                 with Timer("Classification", logger.debug):
                     classifier_label = self.classifier.predict(plant_frame) if self.classifier else "No classifier"

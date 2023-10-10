@@ -7,42 +7,46 @@ from flower_state_classification.cv.models.ultralytics_models.ultralytics_models
 from flower_state_classification.notifications.websocket_notifications import WebsocketNotifier
 from flower_state_classification.notifications.websocket_server import WebsocketServer
 
-# from flower_state_classification.notifications.telegram_notifications import TelegramBot
 
 logger = logging.getLogger(__name__)
 
 
-class PipelineMode(Enum):
-    SCHEDULED = auto()
-    CONTINUOUS = auto()
-
-
-class CameraMode(Enum):
-    STATIC = auto()
-    MOVING = auto()
-
-
 class Settings:
+
     # Classification Settings
+    '''
+    Sets the minimum and maximum angle of the optical flow vectors to be considered as downward motion.
+    
+    (The vertical downwards angle is at 90 degrees).
+    '''
+    minimum_angle = 60  # degrees
+    maximum_angle = 120 # degrees
 
-    minimum_angle = 60  # Downwards angle is at 90 degrees
-    maximum_angle = 120
-
+    '''
+    Sets the minimum magnitude threshold of the optical flow vectors to be considered strong enough motion.
+    
+    The magnitude_threshold is scaled by the magnitude_threshold_scaled times the bounding box size, to obtain the actual threshold.
+    '''
     magnitude_threshold = 20  # Absolute size in pixel
     magnitude_threshold_scaled = 0.05  # Percentage of the plant height
 
-    decay_factor = 0.9  # How much the magnitude decreases each frame
-
-    # Source Settings
-    camera_mode = CameraMode.STATIC
 
     # Scheduling Settings
-    pipeline_mode = PipelineMode.CONTINUOUS
+    '''
+    Switches between using a scheduled webcam and a live webcam.
+
+    Scheduled webcams will only be active between the daily_start_time and daily_end_time.
+    Frames will be taken every cooldown_in_minutes minutes.
+    '''
+    use_scheduled_webcam = True
     daily_start_time = "10:00"
-    daily_end_time = "18:00"
-    every_x_minutes = 30
+    daily_end_time = "17:00"
+    cooldown_in_minutes = 1
 
     # Websocket Notification Settings
+    '''
+    The websocket host and port to use for the websocket server and notifier
+    '''
     websocket_host = "localhost"
     websocket_port = 8765
     # Notification Settings
@@ -50,6 +54,9 @@ class Settings:
     server = WebsocketServer(websocket_host, websocket_port)
 
     # Debug Output Settings
+    '''
+    Different flags to enable and disable debug output.
+    '''
     show_frame = True
     show_bboxes = True
     write_video = True
@@ -62,32 +69,21 @@ class Settings:
     show_green_mask = False
     plot_optical_flow = True
 
-
+    # Output Settings
     output_folder = r"./output"
 
     # Processing Settings
+    '''
+    Setup the object detector and classifier to use.
+
+    We experimented with using plant classifiers to help identify specific plants, however currently no classifier is supported.
+    '''
     detector = UltralyticsDetector("yolov8_m_openimages_best.pt", 0.3)
     classifier = None
 
     # Logging Settings
     log_level = logging.INFO
 
-    # Data Settings
-    dataset_download_folder = r"C:\dev\datasets"
-
-    # GPU Settings
-    try:
-        import torch
-
-        if torch.cuda.is_available():
-            device = "GPU"
-            logger.info("Using GPU")
-        else:
-            device = "CPU"
-            logger.info("Using CPU")
-    except:
-        device = "CPU"
-        logger.info("Could not import torch, using CPU")
 
     def __init__(self, folder=None) -> None:
         if folder:

@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from flower_state_classification.debug.settings import Settings
+from flower_state_classification.settings.settings import Settings
 
 
 def main():

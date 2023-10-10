@@ -3,6 +3,7 @@ import copy
 import os
 from typing import Dict, List, Tuple
 import cv2
+import deprecated
 from matplotlib import pyplot as plt
 import matplotlib
 
@@ -12,7 +13,7 @@ import numpy as np
 import logging
 
 from flower_state_classification.data.boundingbox import BoundingBox
-from flower_state_classification.debug.settings import Settings
+from flower_state_classification.settings.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -320,7 +321,7 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
         self.status.append((index, "enough_water"))
         return False
 
-
+@deprecated
 class DenseOpticalFlowCalculator(OpticalFlowCalculator):
     """
     Calculates the dense optical flow between two frames. Only takes into account the green pixels.

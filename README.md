@@ -65,10 +65,17 @@ pip install -e .
 
 pip install ultralytics
 
-## Code Overview
-Python -> as a module
-Run scripts in outer layer
+## Usage
+After installing the system, the scripts in the root folder of the module (src/flower_state_classification) can be used to run the system:
 
-CV->Training contains examples to train neural networks for different Frameworks -> Pytorch, Ultralytics Yolo, PaddleDetection
+- run.py -> Start the system using the default configuration and with provided commandline arguments
+- run_forever.py -> Starts the run.py script with the provided arguments and restarts it if it crashes
+- run_test_videos.py -> Start the system on multiple test videos with different settings
+- run_server.py -> Runs a Websocket Server to read the results of the system
 
-Different Training code -> Same dataset (fiftyone)(Can be exported to different formats, depending on network type/framework)
+### Configuration
+When running the system (run.py) without any commandline arguments, the system will try to run using a Webcam as input. When providing paths to an image folder or video file, they will be used instead. The system will then try to load the configuration from the settings.py file under src/flower_state_classification/settings/settings.
+
+The behaviour of the system can be changed by editing this settings.py file.
+
+The different parameters are explained in the following file itself.

@@ -5,8 +5,9 @@ import cv2
 import numpy as np
 from flower_state_classification.cli import add_parsers
 
-from flower_state_classification.debug.settings import PipelineMode, Settings
+from flower_state_classification.settings.settings import Settings
 from flower_state_classification.cv.frame_processor import FrameProcessor
+from flower_state_classification.input.scheduled_webcamsource import ScheduledWebcamsource
 from flower_state_classification.input.source import Source
 from flower_state_classification.input.videofilesource import VideoFileSource
 from flower_state_classification.input.imagefoldersource import ImageFolderSource
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class FlowerStateClassificationPipeline:
-    def __init__(self, source, run_settings):
+    def __init__(self, source, run_settings: Settings):
         if issubclass(type(source), Source):
             self.source = source
         elif source:
@@ -30,7 +31,10 @@ class FlowerStateClassificationPipeline:
             else:
                 self.source = VideoFileSource(source)
         else:
-            self.source = WebcamSource()
+            if run_settings.use_scheduled_webcam:
+                self.source = ScheduledWebcamsource(run_settings.daily_start_time, run_settings.daily_end_time, run_settings.cooldown_in_minutes)
+            else:
+                self.source = WebcamSource()
         self.run_settings = run_settings
         self.frame_processor = FrameProcessor(run_settings, self.source)
 
@@ -54,20 +58,13 @@ class FlowerStateClassificationPipeline:
         return True
 
 
-def main(source=None, pipeline_mode=None, output_folder=None):
+def main(source=None, output_folder=None):
     run_settings = Settings(output_folder)
     run_settings.setup_logging()
     pipeline = FlowerStateClassificationPipeline(source, run_settings)
 
-    pipeline_mode = pipeline_mode if pipeline_mode else run_settings.pipeline_mode
-
-    if pipeline_mode is PipelineMode.CONTINUOUS:
-        pipeline.run()
-        create_summary(pipeline)
-
-    elif pipeline_mode is PipelineMode.SCHEDULED:
-        ...
-        # schedule.every().day().
+    pipeline.run()
+    create_summary(pipeline)
 
     Timer.print_summary(logging.info)
 

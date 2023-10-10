@@ -223,7 +223,8 @@ class PaddleDetectionDetector(Detector):
                 results[k] = np.concatenate(v)
         return results
 
-    def predict(self, image_list, save_results=False):
+    def predict(self, image, save_results=False):
+        image_list = [image]
         batch_loop_cnt = math.ceil(float(len(image_list)) / self.batch_size)
         results = []
         for i in range(batch_loop_cnt):

@@ -12,7 +12,7 @@ class Classifier(ABC):
     """
 
     @abstractmethod
-    def predict(self, frames: List[np.array]) -> str:  # Label of the image
+    def predict(self, frame: np.ndarray) -> str:  # Label of the image
         pass
 
 
@@ -23,7 +23,7 @@ class Detector(ABC):
 
     @abstractmethod
     def predict(
-        self, frames: List[np.array]
+        self, frame: np.ndarray
     ) -> List[Tuple[BoundingBox, str]]:  # List of Boundingboxes and their corresponding labels
         pass
 
@@ -35,6 +35,6 @@ class Tracker(Detector):
 
     @abstractmethod
     def predict(
-        self, frames: List[np.array]
+        self, frame: np.ndarray
     ) -> List[Tuple[BoundingBox, str]]:  # List of Boundingboxes and their corresponding ids
         pass

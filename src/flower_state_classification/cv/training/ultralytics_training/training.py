@@ -293,42 +293,19 @@ def add_detection_to_test(test_dataset, run_number=2, model_name="yolov8n"):
     return test_dataset
 
 if __name__ == "__main__":
-    # dataset = foz.load_zoo_dataset(
-    #     'coco-2017',
-    #     split='validation',
-    # )
-    # dataset = add_detection(dataset)
-    # show_dataset(dataset)
-    # debug()
-    # evaluate_dataset(dataset)
-    # prepare_training_data()
-    # print(fo.list_datasets())
-    # fo.delete_dataset("plants_test_dataset")
-    # generate_test_dataset()
-    model_name = "yolov8m_plant_train9"
+    model_name = "yolov8m_plant_train"
     test_dataset = get_test_dataset()
-    #all_label_fields = test_dataset.distinct("predictions.detections.label")
-    for label in all_label_fields:
-        if label != "ground_truth":
-            test_dataset.delete_labels(label)
-    # show_dataset(test_dataset)
+
     test_dataset = add_detection_to_test(test_dataset, run_number=6, model_name=model_name)
     finetune_plant_results = test_dataset.evaluate_detections(
         model_name, 
         eval_key=f"finetune_{model_name}",
         compute_mAP=True,
     )
-    #base_results = test_dataset.evaluate_detections(
-    #    f"yolov8m_plant", 
-    #    eval_key=f"base_{model_name}",
-    #    compute_mAP=True,
-    #)
-    # test_dataset.save()
-    #print("yolov8m mAP: {}".format(base_results.mAP()))
+
     print("fine-tuned mAP: {}".format(finetune_plant_results.mAP()))
-    # print("fine-tuned f1: {}".format(finetune_plant_results.f1()))
+
     finetune_plant_results.print_report(classes=["potted plant"])
-    #base_results.print_report(classes=["potted plant"])
     plot = finetune_plant_results.plot_pr_curves()
     plot.show()
     show_dataset(test_dataset)

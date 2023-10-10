@@ -19,14 +19,13 @@ class UltralyticsDetector(Detector):
             raise ValueError(f"Unknown model name: {model_name}")
         self.reset_tracker = True
 
-    def predict(self, frames: List[np.array]) -> List[Tuple[BoundingBox, str]]:
-        for frame in frames:
-            persist = not self.reset_tracker
-            result = self.model.track(source=frames, conf=self.threshold, persist=persist, verbose=False, tracker="botsort.yaml")
-            self.reset_tracker = False
-            names = result[0].names
-            boxes = result[0].boxes.cpu().numpy()
-            # return [(BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i]),names[int(boxes.cls[i])]) for i in range(len(boxes))]
-            for i, box in enumerate(boxes):
-                track_id = boxes.id[i] if box.is_track else -1
-                yield (BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i], np.shape(frame)), track_id)
+    def predict(self, frame: np.ndarray) -> List[Tuple[BoundingBox, str]]:
+        persist = not self.reset_tracker
+        result = self.model.track(source=[frame], conf=self.threshold, persist=persist, verbose=False, tracker="botsort.yaml")
+        self.reset_tracker = False
+        names = result[0].names
+        boxes = result[0].boxes.cpu().numpy()
+        # return [(BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i]),names[int(boxes.cls[i])]) for i in range(len(boxes))]
+        for i, box in enumerate(boxes):
+            track_id = boxes.id[i] if box.is_track else -1
+            yield (BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i], np.shape(frame)), track_id)
