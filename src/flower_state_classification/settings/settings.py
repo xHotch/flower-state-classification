@@ -38,7 +38,7 @@ class Settings:
     Scheduled webcams will only be active between the daily_start_time and daily_end_time.
     Frames will be taken every cooldown_in_minutes minutes.
     '''
-    use_scheduled_webcam = True
+    use_scheduled_webcam = False
     daily_start_time = "10:00"
     daily_end_time = "17:00"
     cooldown_in_minutes = 1
@@ -57,15 +57,15 @@ class Settings:
     '''
     Different flags to enable and disable debug output.
     '''
-    show_frame = True
-    show_bboxes = True
-    write_video = True
-    write_frames = True
-    write_plant_images = True
-    show_plant_frames = True
+    show_frame = False
+    show_bboxes = False
+    write_video = False
+    write_frames = False
+    write_plant_images = False
+    show_plant_frames = False
 
     ## Optical Flow Debug Settings
-    show_optical_flow = True
+    show_optical_flow = False
     show_green_mask = False
     plot_optical_flow = True
 

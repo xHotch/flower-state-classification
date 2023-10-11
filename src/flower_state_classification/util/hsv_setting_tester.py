@@ -2,6 +2,9 @@ import cv2
 import sys
 import numpy as np
 
+"""
+Script to find values for filtering green image parts
+"""
 
 def nothing(x):
     pass

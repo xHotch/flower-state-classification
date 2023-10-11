@@ -42,10 +42,13 @@ class FlowerStateClassificationPipeline:
     def run(self):
         logger.info(f"Starting pipeline on {self.source}")
         self.frame_number = 0
-        while True:
-            if not self.run_loop():
-                break
-            self.frame_number += 1
+        try:
+            while True:
+                if not self.run_loop():
+                    break
+                self.frame_number += 1
+        except KeyboardInterrupt:
+            ...
         logger.info(f"Pipeline finished on {self.source}")
         cv2.destroyAllWindows()
 

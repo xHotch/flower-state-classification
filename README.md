@@ -27,43 +27,22 @@ The login password for the Jetson Nano devkit that was used to implement the sys
 
 sudo apt-get install libhdf5-serial-dev hdf5-tools libhdf5-dev zlib1g-dev zip libjpeg8-dev liblapack-dev libblas-dev gfortran
 
-sudo apt-get install python3-pip 
-
-sudo pip3 install -U pip testresources setuptools==49.6.0
-
-sudo pip3 install -U numpy==1.19.4 future==0.18.2 mock==3.0.5 h5py==2.10.0 keras_preprocessing==1.1.1 keras_applications==1.0.8 gast==0.2.2 futures protobuf pybind11
-
-sudo pip3 install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v461 tensorflow
-
-
-
 # ln -s /usr/lib/python3.6/dist-packages/cv2 cv2
 
 
-Installation with pipenv (TODO)
-
-pip install 'pipenv==2021.5.29' see https://github.com/pypa/pipenv/issues/4829
-
-sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
-
-# 3.8
+### Python Environment Installation (Ubuntu)
 sudo apt update
 sudo apt install -y python3.8 python3.8-venv python3.8-dev python3-pip libopenmpi-dev libomp-dev libopenblas-dev libblas-dev libeigen3-dev libcublas-dev
 
-python3.8 -m venv venv_38
-source venv_38/bin/activate
-pip install -U pip wheel 
+python3.8 -m venv venv
+source venv/bin/activate
+python3.8 -m pip install -U pip wheel 
 
-pip install -U pip gdown
-gdown https://drive.google.com/uc?id=1hs9HM0XJ2LPFghcn7ZMOs5qu5HexPXwM
-# torchvision 0.12.0
-gdown https://drive.google.com/uc?id=1m0d8ruUY8RvCP9eVjZw4Nc8LAwM8yuGV
+python3.8 -m pip install wheels/torch-*.whl wheels/torchvision-*.whl
 
-python3.8 -m pip install torch-*.whl torchvision-*.whl
+python3.8 -m pip install -e .
 
-pip install -e .
-
-pip install ultralytics
+python3.8 -m pip install ultralytics websockets
 
 ## Usage
 After installing the system, the scripts in the root folder of the module (src/flower_state_classification) can be used to run the system:

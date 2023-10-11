@@ -3,7 +3,7 @@ import copy
 import os
 from typing import Dict, List, Tuple
 import cv2
-import deprecated
+
 from matplotlib import pyplot as plt
 import matplotlib
 
@@ -216,8 +216,9 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
             self.last_bbox = bbox
             return None
         calculated_flow = self.calculate_optical_flow(self.last_frame, frame, self.last_bbox, bbox)
-        self.last_frame = frame
-        self.last_bbox = bbox
+        if calculated_flow is not None:
+            self.last_frame = frame
+            self.last_bbox = bbox
         return calculated_flow
 
     def preprocess_frame(self, frame: np.array) -> np.array:
@@ -261,6 +262,11 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
 
         if not self.last_points:
             p0 = cv2.goodFeaturesToTrack(frame1_gray, mask=mask, **self.feature_params)
+            if p0 is None:
+
+                logger.warning("Did not find any corners for plant {}".format(self.plant_id))
+                return None
+
             logger.warning("Found {} corners for plant {}".format(len(p0), self.plant_id))
         else:
             p0 = self.last_points[-1][0]
@@ -321,7 +327,6 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
         self.status.append((index, "enough_water"))
         return False
 
-@deprecated
 class DenseOpticalFlowCalculator(OpticalFlowCalculator):
     """
     Calculates the dense optical flow between two frames. Only takes into account the green pixels.
