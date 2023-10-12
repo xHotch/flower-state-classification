@@ -18,12 +18,18 @@ from flower_state_classification.util.timer import Timer
 logger = logging.getLogger(__name__)
 
 class FrameProcessor:
+    """
+    Class that processes frames from a source.
+    """
     classifier: Classifier = None
     detector: Detector = None
     classified_plants_new: List[Plant] = None
     last_frame: np.ndarray = None
 
     def __init__(self, run_settings: Settings, source: Source):
+        """
+        Initialize the FrameProcessor.
+        """
         self.debug_settings = run_settings
         self.classifier = run_settings.classifier
         self.detector = run_settings.detector
@@ -39,11 +45,22 @@ class FrameProcessor:
         self.frames_without_plants = []
 
     def send_notification(self, plant: Plant):
+        """
+        Send a notification that a plant needs water.
+        """
         notifier = self.debug_settings.notifier
         message = f"Plant {plant.id} needs water"
         notifier.notify(message)
 
-    def is_same_plant(self, plant: Plant, frame_nr: int, label: str, bbox):
+    def is_same_plant(self, plant: Plant, frame_nr: int, label: str, bbox) -> bool:
+        """
+        Checks if the given plant is the same as the plant with the input label in the previous frame.
+
+        If there was no plant in the previous frame, the plant is the same if the label equals the plant id.
+
+        If there was no plant in the previous frame, the plant is the same  only if the label is equal to the plant id, and the boundingboxes overlap.
+        This is a fix to the ultralytics tracker mistaking two plants.
+        """
         if frame_nr - 1 not in plant.frame_to_bounding_box:
             return str(label) == str(plant.id)
         
@@ -53,14 +70,34 @@ class FrameProcessor:
         return str(label) == str(plant.id) and plant.frame_to_bounding_box[frame_nr - 1].overlaps(bbox)
 
     def process_frame(self, frame: np.array, frame_nr: int):
+        """
+        Process a single frame from the source
+        
+        First, the object detector processes the frame.
+        For each detected plant:
+            - If the plant is new, a new plant is created.
+            - If the plant is not new, the plant is updated with the new bounding box.
+            - The optical flow is calculated for the plant.
+            - The optical flow is classified.
+            - If the plant is classified as unhealthy, a notification is sent.
+            - If there is a classifier, the plant is classified using the classifier. (Currently not supported)
+
+        Depending on the debug settings, multiple images are displayed and/or written to a file.
+        """
+
+        """
+        Run Object Detection
+        """
         detected_plants = None
         if self.detector:
             with Timer("Detection", logger.debug):
                 detected_plants = self.detector.predict(frame)
 
+        
+        """
+        Process detected plants
+        """
         optical_flow = None
-
-        # Classify the image using the classifier
         if detected_plants:
             for bbox, label in detected_plants:
                 plant_frame = frame.copy()
@@ -69,7 +106,9 @@ class FrameProcessor:
                     f"Object detector detected label: {label} at location: {bbox} with confidence: {bbox.score}"
                 )
 
-                # Get Optical Flow tracker
+                """
+                Check if detected plant is new or existing
+                """
                 is_new_plant = True
                 current_plant = None
                 if label == "-1":
@@ -82,7 +121,6 @@ class FrameProcessor:
                             current_plant = plant
                             is_new_plant = False
                             break
-
 
                 if is_new_plant:
                     plant_labels = [plant.id for plant in self.classified_plants_new]
@@ -107,7 +145,9 @@ class FrameProcessor:
                             cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR),
                         )
 
-                # Calculate Optical Flow
+                """
+                Calculate optical flow
+                """
                 with Timer("Optical Flow"):
                     green_mask = None
                     if self.last_frame is not None:
@@ -123,12 +163,20 @@ class FrameProcessor:
                             ):
                                 filename = f"{self.debug_settings.plant_output_folder}/{current_plant.id}_frame-{frame_nr}_needswater.jpg"
                                 cv2.imwrite(filename, cv2.cvtColor(plant_frame, cv2.COLOR_RGB2BGR))
-
+                        else:
+                            current_plant.is_healthy = True
+                
+                """
+                Classify plant
+                """
                 with Timer("Classification", logger.debug):
                     classifier_label = self.classifier.predict(plant_frame) if self.classifier else "No classifier"
                     # gc.collect()
                     logger.debug(f"Classifier detected label: {classifier_label}")
 
+                """
+                Debug output
+                """
                 if self.debug_settings.show_plant_frames:
                     cv2.putText(
                         plant_frame,
@@ -156,6 +204,11 @@ class FrameProcessor:
             logger.debug(f"Object detector did not detect any plants in frame {frame_nr}")
             self.frames_without_plants.append(frame_nr)
 
+
+        """
+        Debug output
+        """
+
         output_frame = frame.copy()
         if self.debug_settings.show_bboxes:
             for plant in self.classified_plants_new:
@@ -169,7 +222,7 @@ class FrameProcessor:
         output_frame = cv2.putText(
             output_frame, f"Frame {frame_nr}", (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2
         )
-        # Displaying the image if the debug setting is set
+        
         if self.debug_settings.show_frame:
             cv2.imshow("frame", cv2.cvtColor(output_frame, cv2.COLOR_RGB2BGR))
             cv2.waitKey(1)
@@ -181,4 +234,7 @@ class FrameProcessor:
             output_filename = os.path.join(self.image_output_folder, f"frame_{frame_nr}.jpg")
             cv2.imwrite(output_filename, cv2.cvtColor(output_frame, cv2.COLOR_RGB2BGR))
 
+        """
+        Set current frame as last frame
+        """
         self.last_frame = frame

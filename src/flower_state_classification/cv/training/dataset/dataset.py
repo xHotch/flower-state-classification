@@ -15,6 +15,10 @@ class ExportTypes(Enum):
     COCO = fo.types.COCODetectionDataset
     
 class PottedPlantDataset():
+    """
+    Class that handles the potted plant dataset.
+    """
+    
     datasets: ClassVar[Dict[str, List[str]]] = {
         "coco-plants" : ["coco-2017"],
         "coco-voc-plants" : ["coco-2017", "voc-2007", "voc-2012"],
@@ -24,7 +28,6 @@ class PottedPlantDataset():
     classes: ClassVar[List[str]] = ["potted plant"]
     dataset: fo.Dataset
 
-    #TODO test if it is exported
     def __init__(self, dataset_name: str, re_setup: bool = False):
         if dataset_name not in self.datasets:
             raise ValueError(f"Dataset name must be one of {self.datasets}")
@@ -126,10 +129,6 @@ if __name__ == "__main__":
     # dataset.export(ExportTypes.YOLO, "validation")
     # dataset.export(ExportTypes.COCO, "validation")
     # dataset.export(ExportTypes.YOLO, ["test", "validation"])
-
-    #Delete "predictions" field
-    # dataset.dataset.delete_labels("predictions")
-    # dataset.dataset.save()
 
     #show dataset in app
     # session = fo.launch_app(dataset.get_fo_dataset())

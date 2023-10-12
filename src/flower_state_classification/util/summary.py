@@ -5,6 +5,10 @@ from flower_state_classification.util.timer import Timer
 
 
 def create_summary(pipeline):
+    """
+    Write out a summary of the pipeline run to a json file.
+    """
+
     source = pipeline.source
     frame_processor = pipeline.frame_processor
     debug_settings = pipeline.run_settings
@@ -23,7 +27,6 @@ def create_summary(pipeline):
         "average_detection_time": detection_time,
         "classifier_model": str(frame_processor.classifier),
         "average_classification_time": classification_time,
-        "use_gpu": "TODO",
         "overall_time": Timer.get_average_time("Total Runtime"),
     }
 

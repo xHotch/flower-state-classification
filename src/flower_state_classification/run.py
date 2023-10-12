@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+from typing import Optional, Union
 import cv2
 import numpy as np
 from flower_state_classification.cli import add_parsers
@@ -22,7 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 class FlowerStateClassificationPipeline:
-    def __init__(self, source, run_settings: Settings):
+    '''
+    Class that runs the pipeline for flower state classification.
+    '''
+    def __init__(self, source: Optional[Union[str, Source]], run_settings: Settings):
+        '''
+        args:
+        source: The source to use for the pipeline. Either a string or an instantiated Source.
+        If None, a webcam will be used.
+
+        run_settings: The settings to use for the pipeline.
+        '''
         if issubclass(type(source), Source):
             self.source = source
         elif source:
@@ -40,6 +51,9 @@ class FlowerStateClassificationPipeline:
 
     @Timer(name="Total Runtime", logger=logger.info)
     def run(self):
+        '''
+        Run the pipeline on the specified source.
+        '''
         logger.info(f"Starting pipeline on {self.source}")
         self.frame_number = 0
         try:
@@ -54,6 +68,9 @@ class FlowerStateClassificationPipeline:
 
     @Timer("Run Loop", logger=logger.debug)
     def run_loop(self):
+        '''
+        Run a single loop of the pipeline. Iterates over the different frames and processes them.
+        '''
         hasframe, frame = self.source.get_frame()
         if not hasframe:
             return False

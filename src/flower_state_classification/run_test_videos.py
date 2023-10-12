@@ -1,8 +1,13 @@
 import os
-from flower_state_classification.settings.settings import PipelineMode
 from flower_state_classification.input.videofilesource import VideoFileSource
 from flower_state_classification.run import main as run_main
 
+"""
+Script to run the pipeline on all videos in a folder.
+
+Can be used to test the pipeline on a large number of videos.
+max_number_of_frames can be used to limit the number of (equally spaced) frames that are processed per video. 
+"""
 
 def main():
     video_folder = r"C:\dev\videos\cut"

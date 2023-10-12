@@ -9,7 +9,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class WebcamSource(Source):
-    # create a opencv video capture object
+    """
+    Source that reads frames from a webcam.
+    """
+
     def __init__(self) -> None:
         self.video_capture = cv2.VideoCapture(0)
         self.framecount = 0
@@ -25,11 +28,11 @@ class WebcamSource(Source):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return ret, image
 
-    def get_framecount(self):
+    def get_framecount(self) -> int:
         return self.framecount
 
-    def width(self):
+    def width(self) -> int:
         return self._width
     
-    def height(self):
+    def height(self) -> int:
         return self._height

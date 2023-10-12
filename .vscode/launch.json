@@ -45,7 +45,7 @@
             "program": "${workspaceFolder}/src/flower_state_classification/run.py",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["C:\\dev\\videos\\cut\\vstack.mp4"]
+            "args": ["C:\\dev\\videos\\nano\\frames"]
         },
         {
             "name": "Python: Run Websocket",

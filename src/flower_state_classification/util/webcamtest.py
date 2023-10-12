@@ -1,20 +1,9 @@
+# Code taken from https://stackoverflow.com/questions/57577445/list-available-cameras-opencv-python
 import cv2
 
 """
-Source: https://stackoverflow.com/questions/57577445/list-available-cameras-opencv-python
+Simple script to test if the webcam is working and to find the available ports.
 """
-
-def main():
-    webcam = cv2.VideoCapture()
-
-    while True:
-        ret, frame = webcam.read()
-        if ret:
-            cv2.imshow("cam", frame)
-            cv2.waitKey(1)
-        else: 
-            print("no frame")
-
 
 def list_ports():
     """

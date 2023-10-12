@@ -2,6 +2,9 @@ import cv2
 
 from flower_state_classification.data.boundingbox import BoundingBox
 
+"""
+Helper functions for visualizing data on images.
+"""
 
 # Taken from https://inside-machinelearning.com/en/bounding-boxes-python-function/
 def box_label(image, bbox: BoundingBox, label="", color=(128, 128, 128), txt_color=(255, 255, 255)):

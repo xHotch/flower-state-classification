@@ -3,11 +3,17 @@ from typing import List, Tuple
 import numpy as np
 import ultralytics
 from ultralytics import YOLO, RTDETR
-from flower_state_classification.cv.models.modeltypes import Detector
+from flower_state_classification.cv.models.modeltypes import Tracker
 from flower_state_classification.data.boundingbox import BoundingBox
 
 
-class UltralyticsDetector(Detector):
+class UltralyticsDetector(Tracker):
+    """
+    Use a detector from the Ultralytics library to detect objects in images.
+
+    This is the default detector for the Flower State Classification project.
+    Model yolov8_m_openimages_best.pt contains the weights from the best performing model on the combined dataset.
+    """
     def __init__(self, model_name: str = "yolov8_m_openimages_best.pt", threshold: float = 0.5) -> None:
         self.threshold = threshold
         self.dir = os.path.dirname(os.path.abspath(__file__))
@@ -25,7 +31,7 @@ class UltralyticsDetector(Detector):
         self.reset_tracker = False
         names = result[0].names
         boxes = result[0].boxes.cpu().numpy()
-        # return [(BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i]),names[int(boxes.cls[i])]) for i in range(len(boxes))]
+
         for i, box in enumerate(boxes):
             track_id = boxes.id[i] if box.is_track else -1
-            yield (BoundingBox.from_relative(boxes.xyxy[i], boxes.conf[i], np.shape(frame)), track_id)
+            yield (BoundingBox.from_ultralytics(boxes.xyxy[i], boxes.conf[i], np.shape(frame)), track_id)

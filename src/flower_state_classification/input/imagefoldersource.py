@@ -12,12 +12,17 @@ class ImageFolderSource(Source):
     This class is used to read images from a folder.
     """
 
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
-        self.file_iterator = glob.iglob(path + "/**/*.jpg", recursive=True)
-        self.frame_count = len(list(glob.iglob(path + "/**/*.jpg", recursive=True)))
+        self.file_iterator = glob.iglob(path + "/**/*.jpg", recursive=True) # Filter for jpg files
+        self.frame_count = len(list(glob.iglob(path + "/**/*.jpg", recursive=True))) # Count number of frames
+        self._width = 640 # default values
+        self._height = 480 # default values
 
     def get_frame(self) -> Tuple[bool, np.ndarray]:
+        """
+        Returns the next frame from the source
+        """
         filename = next(self.file_iterator, None)
         if filename is None:
             return False, None
@@ -28,17 +33,14 @@ class ImageFolderSource(Source):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return True, image
 
-    def get_annotation(self, frame_nr: int):
-        return None
-
-    def get_framecount(self):
+    def get_framecount(self) -> int:
         return self.frame_count
     
-    def width(self):
+    def width(self) -> int:
         return self._width
     
-    def height(self):
+    def height(self) -> int:
         return self._height
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ImageFolderSource({self.path})"

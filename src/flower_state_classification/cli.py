@@ -1,3 +1,7 @@
+"""
+CLI for starting the pipeline.
+"""
+
 def add_parsers(parser):
     _add_source_parser(parser)
 

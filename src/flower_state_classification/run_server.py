@@ -2,6 +2,9 @@ import asyncio
 import logging
 from flower_state_classification.settings.settings import Settings
 
+"""
+Simple script to run the server specified in the Settings file to read notifications from the pipeline.
+"""
 
 def main():
     settings = Settings

@@ -6,6 +6,9 @@ from flower_state_classification.input.source import Source
 
 
 class VideoFileSource(Source):
+    """
+    Source that reads frames from a video file.
+    """
     def __init__(self, path: str, max_frames: int = None):
         self.path = path
         self.video_capture = cv2.VideoCapture(path)
@@ -28,10 +31,10 @@ class VideoFileSource(Source):
         self.frame_number += 1
         return ret, image
 
-    def width(self):
+    def width(self) -> int:
         return self._width
     
-    def height(self):
+    def height(self) -> int:
         return self._height
     
     def _get_source_framecount(self) -> int:

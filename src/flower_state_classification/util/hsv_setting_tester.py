@@ -1,9 +1,11 @@
+# Code adapted from https://gist.github.com/nathancy/85002f65ad2b8d62cf4e43edebe78bf3
+
 import cv2
-import sys
 import numpy as np
 
+
 """
-Script to find values for filtering green image parts
+Simple Script to find the values for filtering out non-green image parts
 """
 
 def nothing(x):
@@ -23,9 +25,7 @@ cv2.createTrackbar("VMax", "image", 0, 255, nothing)
 
 # Set default value for MAX HSV trackbars.
 cv2.setTrackbarPos("HMin", "image", 35)
-
 cv2.setTrackbarPos("SMin", "image", 25)
-
 cv2.setTrackbarPos("VMin", "image", 25)
 
 cv2.setTrackbarPos("HMax", "image", 90)
@@ -36,11 +36,11 @@ cv2.setTrackbarPos("VMax", "image", 255)
 hMin = sMin = vMin = hMax = sMax = vMax = 0
 phMin = psMin = pvMin = phMax = psMax = pvMax = 0
 
-img = cv2.imread(r"C:\dev\eigene\photo_2023-02-24_09-32-23.jpg")
+img = cv2.imread(r"C:\dev\videos\nano\frames\frame_0.jpg")
 output = img
 waitTime = 33
 
-while 1:
+while True:
     # get current positions of all trackbars
     hMin = cv2.getTrackbarPos("HMin", "image")
     sMin = cv2.getTrackbarPos("SMin", "image")

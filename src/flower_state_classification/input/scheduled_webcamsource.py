@@ -9,11 +9,9 @@ from flower_state_classification.input.source import Source
 
 class ScheduledWebcamsource(Source):
     """
-    Implementation of a Webcamsource that uses a simple schedule the wait when reading new frames.
+    Source that reads from a webcam and uses a simple schedule the wait when reading new frames.
     """
-
-    
-    def __init__(self, start_time, end_time, cooldown_in_minutes) -> None:
+    def __init__(self, start_time: str, end_time: str, cooldown_in_minutes: int) -> None:
         self.video_capture = cv2.VideoCapture(0)
         self.framecount = 0
         self._width = int(self.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -52,11 +50,11 @@ class ScheduledWebcamsource(Source):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return ret, image
 
-    def get_framecount(self):
+    def get_framecount(self) -> int:
         return self.framecount
 
-    def width(self):
+    def width(self) -> int:
         return self._width
     
-    def height(self):
+    def height(self) -> int:
         return self._height

@@ -50,6 +50,8 @@ opencv-contrib-python = "*"
 # onnxruntime-gpu = "*"
 # schedule = "*"
 python-telegram-bot = "*"
+websockets = "*"
+apscheduler = "*"
 
 [dev-packages]
 

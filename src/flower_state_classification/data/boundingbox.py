@@ -8,6 +8,9 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class BoundingBox:
+    """
+    Class that represents a bounding box.
+    """
     x: int
     y: int
     x2: int
@@ -19,7 +22,10 @@ class BoundingBox:
     score: float = 0.0
 
     @classmethod
-    def from_coco(cls, coco_bbox, size, score):
+    def from_coco(cls, coco_bbox: np.ndarray, size: np.ndarray, score: float):
+        """
+        Initializing bounding box from coco format.
+        """
         image_height, image_width = int(size[0][0]), int(size[0][1])
         box = [int(i) for i in coco_bbox.tolist()]
 
@@ -39,7 +45,10 @@ class BoundingBox:
         return cls(box[0], box[1], box[2], box[3], image_width, image_height, score)
 
     @classmethod
-    def from_relative(cls, box: np.ndarray, score: float, size: np.ndarray, normalized: bool=False):
+    def from_ultralytics(cls, box: np.ndarray, score: float, size: np.ndarray, normalized: bool=False):
+        """
+        Initializing bounding box from ultralytics format
+        """
         height = size[0]
         width = size[1]
         x1, y1, x2, y2 = [int(data) for data in box]
@@ -62,31 +71,31 @@ class BoundingBox:
             )
         return cls(x1, y1, x2, y2, image_width=width, image_height=height, score=score)
 
-    def height(self):
+    def height(self) -> int:
         return self.y2 - self.y
 
-    def width(self):
+    def width(self) -> int:
         return self.x2 - self.x
 
-    def area(self):
+    def _area(self) -> int:
         return (self.width()) * (self.height())
 
-    def intersection_area(self, other):
+    def _intersection_area(self, other) -> int:
         x_overlap = max(0, min(self.x2, other.x2) - max(self.x, other.x))
         y_overlap = max(0, min(self.y2, other.y2) - max(self.y, other.y))
         return x_overlap * y_overlap
 
-    def union_area(self, other):
-        return self.area() + other.area() - self.intersection_area(other)
+    def _union_area(self, other):
+        return self._area() + other.area() - self._intersection_area(other)
 
-    def overlaps(self, other, threshold=0.8):
+    def overlaps(self, other, threshold=0.8) -> bool:
         """
         Returns true if the IOU of this bounding box with the other bounding box is greater than threshold.
         """
-        iou = self.intersection_area(other) / self.union_area(other)
+        iou = self._intersection_area(other) / self._union_area(other)
         return iou > threshold
 
-    def mask_frame(self, frame, value=0):
+    def mask_frame(self, frame, value=0) -> np.ndarray:
         """
         Masks the frame with the bounding box.
         """
@@ -94,5 +103,9 @@ class BoundingBox:
         new_frame[self.y : self.y2, self.x : self.x2] = frame[self.y : self.y2, self.x : self.x2]
         return new_frame
 
-    def cut_frame(self, frame):
+    def cut_frame(self, frame) -> np.ndarray:
+        """
+        Cuts the frame with the bounding box.
+        """
+        
         return frame[int(self.y) : int(self.y2), int(self.x) : int(self.x2)]

@@ -9,7 +9,7 @@ The dataset can be found under dataset/dataset.py
 # Model Training
 
 ## PyTorch
-Deprecated, use ultralytics or PaddleDetection instead.
+Rmoved, use ultralytics or PaddlePaddle instead.
 
 ## Ultralytics
 For ultralytics training, refer to https://docs.ultralytics.com/modes/train/. Before training, make sure the desired dataset is exported in the YOLO format. Afterwards simply install the ultralytics library using:

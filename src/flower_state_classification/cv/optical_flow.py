@@ -3,7 +3,6 @@ import copy
 import os
 from typing import Dict, List, Tuple
 import cv2
-
 from matplotlib import pyplot as plt
 import matplotlib
 
@@ -19,10 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 class OpticalFlowCalculator(ABC):
+
     # Color parameters
-    filter_green: bool = False
-    green_threshold_low: np.array = np.array([36, 25, 25])
-    green_threshold_high: np.array = np.array([90, 255, 255])
+    green_threshold_low: np.array
+    green_threshold_high: np.array
 
     # Debug variables
     flow_angles: List[np.ndarray]
@@ -41,35 +40,47 @@ class OpticalFlowCalculator(ABC):
         self.total_angles = []
         self.total_magnitudes = []
         self.debug_settings = debug_settings
+        self.green_threshold_low = np.array(debug_settings.green_mask_lower)
+        self.green_threshold_high = np.array(debug_settings.green_mask_upper)
 
         self.status = []
         self.plant_id = plant_id
         self.scaled_threshold = None
-        # self.fig.show()
 
     def get_green_mask(self, frame: np.ndarray, bbox: BoundingBox = None) -> np.ndarray:
+        """
+        Filter out non green values from the frame. If a boundingbox is given,  removes the pixels outside the boundingbox.
+        """
         hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
         mask = cv2.inRange(hsv, self.green_threshold_low, self.green_threshold_high)
         if bbox:
             mask = bbox.mask_frame(mask, value=0)
 
-        if self.debug_settings.show_green_mask:
-            if self.debug_settings.show_green_mask and mask is not None:
-                cv2.imshow("green_mask", mask)
-                cv2.waitKey(1)
+        if self.debug_settings.show_green_mask and mask is not None:
+            cv2.imshow("green_mask", mask)
+            cv2.waitKey(1)
 
         return mask
 
     @abstractmethod
-    def calculate(self, frame: np.ndarray) -> np.ndarray:
+    def calculate(self, frame: np.ndarray, bbox: BoundingBox) -> np.ndarray:
+        """
+        Calculates the optical flow between two frames.
+        """
         ...
 
     @abstractmethod
-    def visualize(self, image: np.ndarray, flow: np.ndarray) -> np.ndarray:
+    def visualize(self, image: np.ndarray) -> np.ndarray:
+        """
+        Returns an image that visualizes the current optical flow
+        """
         ...
 
     @abstractmethod
     def classify(self, optical_flow: np.ndarray) -> None:
+        """
+        Calculate whether the optical flow indicates that the plant needs watering.
+        """
         ...
 
     def _calculate_angle_and_magnitude(
@@ -78,7 +89,7 @@ class OpticalFlowCalculator(ABC):
         if optical_flow is None:
             return None, None
 
-        if mask is not None:  # TODO: check if this is correct
+        if mask is not None:
             optical_flow = cv2.bitwise_and(optical_flow, optical_flow, mask=mask)
 
         if len(optical_flow.shape) == 2 or optical_flow.shape[2] == 2:
@@ -122,6 +133,10 @@ class OpticalFlowCalculator(ABC):
         return plot_angle, plot_magnitude
 
     def plot(self, id: str = None, save=False):
+        """
+        Plots the optical flow over time. If save is set to true, the plot is saved to the output folder.
+        To display the plot in a live window, the backend matplotlib is using might need to be changed (see line 9 matplotlib.use("agg"))
+        """
         if self.flow_angles is None or len(self.flow_angles) < 1:
             logger.warning("No optical flow to plot")
             return
@@ -188,15 +203,12 @@ class OpticalFlowCalculator(ABC):
         plt.close(self.fig)
 
 
-# https://docs.opencv.org/4.7.0/d4/dee/tutorial_optical_flow.html
+# Mostly taken from  https://docs.opencv.org/4.7.0/d4/dee/tutorial_optical_flow.html
 class SparseOpticalFlowCalculator(OpticalFlowCalculator):
+    """
+    Use the Sparse Lucas-Kanade method to calculate the optical flow.
+    """
     last_points: List[Tuple]
-
-    def __init__(self, settings=None, plant_id="") -> None:
-        super().__init__(settings, plant_id)
-        self.color = np.random.randint(0, 255, (100, 3))
-        self.last_points = []
-        ...
 
     # Parameters for Shi-Tomasi corner detection
     feature_params = dict(maxCorners=100, qualityLevel=0.3, minDistance=7, blockSize=7)
@@ -208,6 +220,11 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
         winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03)
     )
 
+    def __init__(self, settings=None, plant_id="") -> None:
+        super().__init__(settings, plant_id)
+        self.color = np.random.randint(0, 255, (100, 3))
+        self.last_points = []
+
     def calculate(self, new_frame: np.ndarray, bbox: BoundingBox) -> np.ndarray:
         frame = copy.deepcopy(new_frame)
         if self.last_frame is None:
@@ -215,13 +232,13 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
             self.last_frame = frame
             self.last_bbox = bbox
             return None
-        calculated_flow = self.calculate_optical_flow(self.last_frame, frame, self.last_bbox, bbox)
+        calculated_flow = self._calculate_optical_flow(self.last_frame, frame, self.last_bbox, bbox)
         if calculated_flow is not None:
             self.last_frame = frame
             self.last_bbox = bbox
         return calculated_flow
 
-    def preprocess_frame(self, frame: np.array) -> np.array:
+    def _preprocess_frame(self, frame: np.array) -> np.array:
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         return frame_gray
 
@@ -243,7 +260,7 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
 
         return im2
 
-    def calculate_optical_flow(
+    def _calculate_optical_flow(
         self,
         last_frame: np.array,
         current_frame: np.array,
@@ -254,8 +271,8 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
         Calculates the optical flow between two frames.
         """
         # Convert to grayscale
-        frame1_gray = self.preprocess_frame(last_frame)
-        frame2_gray = self.preprocess_frame(current_frame)
+        frame1_gray = self._preprocess_frame(last_frame)
+        frame2_gray = self._preprocess_frame(current_frame)
 
         # Find corners in first frame
         mask = self.get_green_mask(last_frame, last_bbox)
@@ -263,10 +280,8 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
         if not self.last_points:
             p0 = cv2.goodFeaturesToTrack(frame1_gray, mask=mask, **self.feature_params)
             if p0 is None:
-
-                logger.warning("Did not find any corners for plant {}".format(self.plant_id))
+                logger.warning("No corners found for plant {}".format(self.plant_id))
                 return None
-
             logger.warning("Found {} corners for plant {}".format(len(p0), self.plant_id))
         else:
             p0 = self.last_points[-1][0]
@@ -326,141 +341,3 @@ class SparseOpticalFlowCalculator(OpticalFlowCalculator):
 
         self.status.append((index, "enough_water"))
         return False
-
-class DenseOpticalFlowCalculator(OpticalFlowCalculator):
-    """
-    Calculates the dense optical flow between two frames. Only takes into account the green pixels.
-    """
-
-    # Optical flow parameters
-    pyr_scale: float = 0.5
-    levels: int = 3
-    winsize: int = 15
-    iterations: int = 3
-    poly_n: int = 5
-    poly_sigma: float = 1.2
-    flags: int = 0
-
-    last_frame: np.ndarray = None
-
-    def __init__(self, settings=None) -> None:
-        super().__init__(settings)
-
-    def calculate(self, new_frame: np.ndarray, bbox: BoundingBox = None) -> np.ndarray:
-        frame = copy.deepcopy(new_frame)
-        if self.last_frame is None:
-            logger.debug("First frame for optical flow")
-            self.last_frame = frame
-            self.last_bbox = bbox
-            return None
-
-        calculated_flow = self.calculate_optical_flow(self.last_frame, frame)
-        self.last_frame = frame
-        self.last_bbox = bbox
-        return calculated_flow
-
-    def _preprocess(self, frame: np.ndarray) -> np.ndarray:
-        if self.filter_green:
-            mask = self.get_green_mask(frame)
-            frame = cv2.bitwise_and(frame, frame, mask=mask)
-
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        return frame
-
-    def visualize(self, image: np.ndarray, flow: np.ndarray) -> np.ndarray:
-        image = image.copy()
-
-        # Convert image to RGB (if it's in BGR format)
-        if len(image.shape) == 2 or image.shape[2] == 1:
-            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-        else:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-        # Calculate the magnitude and angle of the optical flow vectors
-        magnitude, angle = cv2.cartToPolar(flow[..., 0], flow[..., 1])
-
-        # Create a mask to only display strong optical flow vectors
-        mask = np.zeros_like(image)
-        mask[..., 1] = 255
-        valid_flow = magnitude > 1
-        mask[valid_flow] = [0, 0, 255]
-
-        # Calculate the start and end points of the optical flow vectors
-        start_points = np.meshgrid(range(0, image.shape[1], 10), range(0, image.shape[0], 10))
-        start_points = np.array(start_points, dtype=np.float32).T.reshape(-1, 2)
-        end_points = start_points + flow[start_points[:, 1].astype(int), start_points[:, 0].astype(int)]
-
-        # Draw arrows on the image
-        for pt1, pt2 in zip(start_points, end_points):
-            pt1 = tuple(map(int, pt1))
-            pt2 = tuple(map(int, pt2))
-            cv2.arrowedLine(image, pt1, pt2, (0, 255, 0), 1, cv2.LINE_AA, 0, 0.4)
-
-        return image
-
-    def calculate_optical_flow(self, frame1: np.ndarray, frame2: np.ndarray) -> np.ndarray:
-        """
-        Calculates the optical flow between two frames.
-        """
-        output = np.zeros_like(frame1)
-        # Handle different input sizes
-        if frame1.shape != frame2.shape:
-            logger.warning(f"Frames have different shapes: {frame1.shape} and {frame2.shape}. Padding with zeros.")
-
-            if frame1.shape[0] < frame2.shape[0]:
-                frame2 = frame2[0 : frame1.shape[0], :, :]
-            if frame1.shape[1] < frame2.shape[1]:
-                frame2 = frame2[:, 0 : frame1.shape[1], :]
-
-            if frame1.shape != frame2.shape:
-                frame2 = cv2.copyMakeBorder(
-                    frame2,
-                    0,
-                    frame1.shape[0] - frame2.shape[0],
-                    0,
-                    frame1.shape[1] - frame2.shape[1],
-                    cv2.BORDER_CONSTANT,
-                    value=[0, 0, 0],
-                )
-
-        # Preprocess frames
-        try:
-            frame1_gray = self._preprocess(frame1)
-            frame2_gray = self._preprocess(frame2)
-
-        except:
-            logger.warning(f"Could not preprocess frames")
-            return output
-
-        # Calculate optical flow
-        flow = cv2.calcOpticalFlowFarneback(
-            frame1_gray,
-            frame2_gray,
-            None,
-            self.pyr_scale,
-            self.levels,
-            self.winsize,
-            self.iterations,
-            self.poly_n,
-            self.poly_sigma,
-            self.flags,
-        )
-
-        return flow
-
-    def convert_optical_flow_to_polar(self, optical_flow: np.ndarray, normalize: bool = False) -> np.ndarray:
-        if optical_flow is None:
-            return None
-        output = np.zeros((optical_flow.shape[0], optical_flow.shape[1], 3), dtype=np.uint8)
-        mag, ang = cv2.cartToPolar(optical_flow[..., 0], optical_flow[..., 1])
-        output[..., 1] = 255
-        output[..., 0] = ang * 180 / np.pi / 2
-        if normalize:
-            output[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-        else:
-            output[..., 2] = mag
-        output = cv2.cvtColor(output, cv2.COLOR_HSV2RGB)
-        return output
-
-    def classify(self, optical_flow: np.ndarray) -> None:
-        self._calculate_angle_and_magnitude(optical_flow, self.get_green_mask(self.last_frame, self.last_bbox))

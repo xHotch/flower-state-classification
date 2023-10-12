@@ -87,6 +87,7 @@ class Timer(ContextDecorator):
 
     @classmethod
     def print_summary(cls, logging_function: Callable = print) -> None:
+        """Print a summary of all timers"""
         for timer_name, values in cls.timers.items():
             if values:
                 logging_function(
