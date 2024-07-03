@@ -11,8 +11,10 @@ This Document contains a Readme and short overview of the Flower State Classific
 
 <figure>
 <img src="images/1.0_frame-1.jpg" width=50%><img src="images/1.0_frame-935_needswater.jpg" width=50%>
- <figcaption>Plant at initial detection (left) vs plant when status was changed to <em>needs_water</em> (right) </figcaption>
+ <figcaption>Plant at initial detection vs plant when status was changed to <em>needs_water</em></figcaption>
 </figure>
+
+
 ## Hardware Setup:
 To Test and implement the system, the following Hardware was used:
 Jetson Nano devkit 4GB.
